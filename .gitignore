@@ -1,0 +1,25 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+
+# Node
+node_modules/
+dist/
+.cache/
+.npm/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Builds
+build/
+out/
+coverage/
