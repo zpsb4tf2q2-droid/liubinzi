@@ -1,0 +1,59 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+*.swo
+*.tmp
+*.temp
+
+# Node
+node_modules/
+.npm/
+.pnpm-debug.log*
+
+# TypeScript build outputs
+lib/
+dist/
+build/
+.tmp/
+.out/
+
+# Env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Coverage and test outputs
+coverage/
+.nyc_output/
+jest-html-reporters-*/
+
+# Editor/IDE
+.vscode/
+.idea/
+*.iml
+
+# OS files
+ehthumbs.db
+Icon?
+
+# Docker
+**/.docker-cache/
+**/.docker/
+
+# Misc
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+# Lockfiles (commit as you see fit; by default we keep them committed)
+# Uncomment to ignore if desired:
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
