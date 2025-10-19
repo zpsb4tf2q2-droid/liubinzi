@@ -1,26 +1,73 @@
-# 苹果手机（iPhone）产品页面
+# Next.js + Prisma + PostgreSQL (Docker) Starter
 
-该分支包含一个简洁的静态网页，用于展示“苹果手机（iPhone）”的产品介绍和特色，适合作为静态预览或占位页面。
+This branch sets up a minimal Next.js application with Prisma and a local PostgreSQL database using Docker Compose. It includes an Auth.js-ready Prisma schema (User, Account, Session, VerificationToken) and a seed script to populate sample data for the auth flow.
 
-## 预览
+## Prerequisites
 
-直接在浏览器中打开项目根目录下的 `index.html` 即可：
+- Docker and Docker Compose
+- Node.js 18+ and pnpm (optional when running outside Docker)
 
-- 双击打开 `index.html`
-- 或者使用简单的静态服务器（任选其一）：
-  - Python: `python3 -m http.server 8080` 后访问 http://localhost:8080/
-  - Node: `npx serve .` 后访问提供的地址
+## Getting Started (with Docker)
 
-## 结构
+1. Copy the environment example file:
+   
+   cp .env.example .env
 
-- `index.html`：主页面，包含 iPhone 介绍、亮点和机型卡片
-- `styles.css`：轻量样式，移动端优先的自适应排版
-- `.gitignore`：常见忽略项
+2. Start the app and database:
+   
+   docker-compose up --build
 
-## 兼容性
+   - App: http://localhost:3000
+   - Postgres: localhost:5432 (user: postgres / password: postgres)
 
-页面遵循移动端优先设计，适配主流移动/桌面浏览器。
+3. Run database migrations and seed data inside the app container:
+   
+   docker-compose exec app pnpm prisma:migrate
+   docker-compose exec app pnpm prisma:seed
 
-## 版权声明
+   This will generate the database schema and insert demo records.
 
-“iPhone” 与 “Apple” 为 Apple Inc. 的商标。本文档及页面仅用于演示，非官方产品页面。
+## Prisma
+
+- Schema location: prisma/schema.prisma
+- Generate Prisma Client:
+  
+  pnpm prisma:generate
+
+- Create/Apply migrations (dev):
+  
+  pnpm prisma:migrate
+
+- Push schema (no migration history):
+  
+  pnpm prisma:push
+
+- Seed database:
+  
+  pnpm prisma:seed
+
+The seed script creates a demo user with email user@example.com and related auth records (Account, Session, VerificationToken).
+
+## Running without Docker (optional)
+
+If you have a local Postgres running, set DATABASE_URL in a .env file in the project root, then run:
+
+pnpm install
+pnpm prisma:generate
+pnpm prisma:migrate
+pnpm prisma:seed
+pnpm dev
+
+App will be available at http://localhost:3000.
+
+## Docker Compose Services
+
+- db: PostgreSQL 15 (alpine)
+- app: Next.js dev server (Node 20, pnpm)
+
+Volumes persist database data and allow hot-reload for the Next.js app.
+
+## Notes
+
+- The Prisma schema is compatible with Auth.js providers and models.
+- postinstall runs prisma generate to keep the client in sync after installs.
