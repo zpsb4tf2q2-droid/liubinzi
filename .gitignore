@@ -9,6 +9,14 @@ dist/
 .cache/
 .npm/
 
+# Next.js
+.next/
+out/
+
+# Env
+.env
+.env.*
+
 # Python
 __pycache__/
 *.pyc
@@ -21,5 +29,4 @@ __pycache__/
 
 # Builds
 build/
-out/
 coverage/
