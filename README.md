@@ -13,19 +13,49 @@ This branch sets up a minimal Next.js application with Prisma and a local Postgr
    
    cp .env.example .env
 
-2. Start the app and database:
+2. Fill in required variables in `.env` as documented below.
+
+3. Start the app and database:
    
    docker-compose up --build
 
    - App: http://localhost:3000
    - Postgres: localhost:5432 (user: postgres / password: postgres)
 
-3. Run database migrations and seed data inside the app container:
+4. Run database migrations and seed data inside the app container:
    
    docker-compose exec app pnpm prisma:migrate
    docker-compose exec app pnpm prisma:seed
 
    This will generate the database schema and insert demo records.
+
+## Environment variables and validation
+
+This project validates environment variables at startup using a shared Zod schema for both server and client environments.
+
+- Location: `lib/env.mjs`
+- Example file: `.env.example` (copy to `.env` and adjust values)
+- Integration:
+  - `next.config.mjs` imports `lib/env.mjs` so the dev server/build fails fast if variables are invalid.
+  - `pages/_app.js` imports `lib/env.mjs` to also validate public variables in the browser.
+
+Required variables (see `.env.example` for details and comments):
+
+- Server (Node.js):
+  - `DATABASE_URL` (PostgreSQL connection string, used by Prisma)
+  - `NEXTAUTH_URL` (Canonical app URL, e.g., http://localhost:3000)
+  - `NEXTAUTH_SECRET` (>= 32 chars; generate with `openssl rand -base64 32`)
+  - `NODE_ENV` (development | test | production)
+
+- Client (browser, public):
+  - `NEXT_PUBLIC_SITE_NAME` (shown in the UI)
+
+Optional variables:
+
+- `NEXT_TELEMETRY_DISABLED` (set to `1` to disable Next.js telemetry)
+- OAuth provider credentials such as `GITHUB_ID`, `GITHUB_SECRET`, etc. (if/when you add corresponding providers to Auth.js)
+
+If validation fails, a clear error list will be printed and the app will not start until all issues are resolved.
 
 ## Prisma
 
