@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import FeatureCard from '@/components/ui/feature-card';
 
 const features = [
@@ -55,7 +57,7 @@ export default function HomePage(): JSX.Element {
         ))}
       </section>
 
-      <section className="flex flex-col items-center gap-3 text-center">
+      <section className="flex flex-col items-center gap-4 text-center">
         <code className="rounded-full bg-slate-900 px-5 py-2 text-sm font-medium text-slate-100">
           pnpm dev
         </code>
@@ -65,6 +67,12 @@ export default function HomePage(): JSX.Element {
             localhost:3000
           </a>
         </p>
+        <Link
+          href="/login"
+          className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          Sign in to your dashboard
+        </Link>
       </section>
     </main>
   );
