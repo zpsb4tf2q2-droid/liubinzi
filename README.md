@@ -1,73 +1,44 @@
-# Next.js + Prisma + PostgreSQL (Docker) Starter
+# Next.js 14 App Router Starter
 
-This branch sets up a minimal Next.js application with Prisma and a local PostgreSQL database using Docker Compose. It includes an Auth.js-ready Prisma schema (User, Account, Session, VerificationToken) and a seed script to populate sample data for the auth flow.
+This repository contains a minimal Next.js 14 project configured with the App Router, TypeScript, Tailwind CSS, ESLint, and Prettier. It provides a productive baseline with strict typing, absolute imports, and a health-check API route.
 
-## Prerequisites
+## Getting Started
 
-- Docker and Docker Compose
-- Node.js 18+ and pnpm (optional when running outside Docker)
+Install dependencies and start the local development server:
 
-## Getting Started (with Docker)
-
-1. Copy the environment example file:
-   
-   cp .env.example .env
-
-2. Start the app and database:
-   
-   docker-compose up --build
-
-   - App: http://localhost:3000
-   - Postgres: localhost:5432 (user: postgres / password: postgres)
-
-3. Run database migrations and seed data inside the app container:
-   
-   docker-compose exec app pnpm prisma:migrate
-   docker-compose exec app pnpm prisma:seed
-
-   This will generate the database schema and insert demo records.
-
-## Prisma
-
-- Schema location: prisma/schema.prisma
-- Generate Prisma Client:
-  
-  pnpm prisma:generate
-
-- Create/Apply migrations (dev):
-  
-  pnpm prisma:migrate
-
-- Push schema (no migration history):
-  
-  pnpm prisma:push
-
-- Seed database:
-  
-  pnpm prisma:seed
-
-The seed script creates a demo user with email user@example.com and related auth records (Account, Session, VerificationToken).
-
-## Running without Docker (optional)
-
-If you have a local Postgres running, set DATABASE_URL in a .env file in the project root, then run:
-
+```bash
 pnpm install
-pnpm prisma:generate
-pnpm prisma:migrate
-pnpm prisma:seed
 pnpm dev
+```
 
-App will be available at http://localhost:3000.
+The application will be available at [http://localhost:3000](http://localhost:3000). The root page renders a placeholder marketing layout showcasing the configured Tailwind utility classes.
 
-## Docker Compose Services
+## Available Scripts
 
-- db: PostgreSQL 15 (alpine)
-- app: Next.js dev server (Node 20, pnpm)
+| Command          | Description                                  |
+| ---------------- | -------------------------------------------- |
+| `pnpm dev`       | Runs the Next.js development server.         |
+| `pnpm lint`      | Lints the project using the Next.js ESLint preset. |
+| `pnpm typecheck` | Validates TypeScript types without emitting files. |
+| `pnpm build`     | Creates a production build of the application. |
+| `pnpm start`     | Starts the production server.                |
+| `pnpm format`    | Formats all files with Prettier.             |
+| `pnpm format:check` | Checks formatting without making changes. |
 
-Volumes persist database data and allow hot-reload for the Next.js app.
+## Tooling
 
-## Notes
+- **TypeScript** configured in `strict` mode with absolute imports via the `@/*` alias.
+- **Tailwind CSS** with default configuration, custom theme extensions, and global base styles.
+- **ESLint** using the Next.js + TypeScript presets with an additional rule to prevent accidental console logging.
+- **Prettier** for consistent code formatting across the project.
+- **pnpm workspace** root for future expansion.
 
-- The Prisma schema is compatible with Auth.js providers and models.
-- postinstall runs prisma generate to keep the client in sync after installs.
+## API
+
+A simple health-check endpoint is available at `/api/health` and responds with a JSON payload containing status information.
+
+```
+GET /api/health -> { "status": "ok", "timestamp": "2024-01-01T00:00:00.000Z" }
+```
+
+Use this route for infrastructure monitoring or load balancer health probes.
