@@ -19,6 +19,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "src/**/*", "prisma/**/*.ts", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "src/**/*", "prisma/**/*.ts", "tests/**/*.ts", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
