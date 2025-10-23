@@ -13,6 +13,38 @@ pnpm dev
 
 The application will be available at [http://localhost:3000](http://localhost:3000). The root page renders a placeholder marketing layout showcasing the configured Tailwind utility classes.
 
+## Docker
+
+A multi-stage Dockerfile and Compose configuration are included for both development and production workflows.
+
+### Development profile
+
+```bash
+docker compose --profile dev up --build
+```
+
+This command builds the `app` service using the development target, starts the Next.js server with hot reload, and provisions the PostgreSQL database. Source changes are watched automatically thanks to the mounted project volume. Use <kbd>Ctrl</kbd> + <kbd>C</kbd> or `docker compose --profile dev down` to stop the stack.
+
+You can run project scripts inside the development container, for example:
+
+```bash
+docker compose run --rm --profile dev app pnpm lint
+docker compose run --rm --profile dev app pnpm typecheck
+docker compose run --rm --profile dev app pnpm build
+```
+
+### Production profile
+
+Build and run the optimized production image:
+
+```bash
+docker compose --profile prod up --build
+```
+
+This profile uses the multi-stage build output to run Next.js in production mode behind a non-root user while reusing the shared PostgreSQL database service. The application is exposed on port `3000` by default.
+
+While the containers are running, Docker monitors the `/api/health` endpoint to ensure the application is healthy.
+
 ## Available Scripts
 
 | Command              | Description                                       |
@@ -39,7 +71,7 @@ The application will be available at [http://localhost:3000](http://localhost:30
 ## Database
 
 1. Copy `.env.example` to `.env` and adjust any environment variables if necessary.
-2. Start PostgreSQL for local development: `docker compose up -d db`.
+2. Start PostgreSQL for local development: `docker compose --profile dev up -d db`.
 3. Generate the Prisma Client (optional, runs automatically on install): `pnpm prisma:generate`.
 4. Apply the latest migrations: `pnpm prisma:migrate`.
 5. Seed the database with a demo user: `pnpm prisma:seed`.
