@@ -42,7 +42,16 @@ The application will be available at [http://localhost:3000](http://localhost:30
 2. Start PostgreSQL for local development: `docker compose up -d db`.
 3. Generate the Prisma Client (optional, runs automatically on install): `pnpm prisma:generate`.
 4. Apply the latest migrations: `pnpm prisma:migrate`.
-5. Seed the database with a demo user: `pnpm prisma:seed`.
+5. Seed the database with demo data: `pnpm prisma:seed`.
+
+## Testing Fixtures
+
+Deterministic seed data and utilities are provided for automated testing:
+
+- **Vitest**: import `tests/fixtures/vitest` at the top of a test file to automatically reset the database, seed demo data, and expose `prisma` and `seed` on the test context.
+- **Playwright**: import `{ test, expect }` from `tests/fixtures/playwright` to access the extended test runner with Prisma fixtures and seeded records.
+
+Both fixtures reuse the shared logic in `prisma/seed-data.ts`, ensuring local runs and automated tests operate on the same dataset.
 
 ## API
 
