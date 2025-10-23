@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import FeatureCard from '@/components/ui/feature-card';
 
 const features = [
@@ -38,6 +40,16 @@ export default function HomePage(): JSX.Element {
           ergonomics. Tailwind CSS, strict TypeScript, linting, formatting, and health monitoring are
           all wired up.
         </p>
+
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            data-testid="cta-dashboard"
+            href="/dashboard"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"
+          >
+            Open live demo dashboard
+          </Link>
+        </div>
       </section>
 
       <section className="grid gap-6 md:grid-cols-3">
