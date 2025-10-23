@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import FeatureCard from '@/components/ui/feature-card';
 
 const features = [
@@ -64,6 +66,15 @@ export default function HomePage(): JSX.Element {
           <a className="font-medium text-primary" href="http://localhost:3000" target="_blank" rel="noreferrer">
             localhost:3000
           </a>
+        </p>
+        <Link
+          href="/app"
+          className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary transition hover:border-primary hover:bg-primary/10"
+        >
+          Go to your dashboard
+        </Link>
+        <p className="text-xs text-slate-400">
+          Protected routes require signing in with credentials created via the registration API.
         </p>
       </section>
     </main>
