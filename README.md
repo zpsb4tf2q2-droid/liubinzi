@@ -42,13 +42,15 @@ app/
   page.tsx         # Home page
 
 prisma/
-  schema.prisma    # Datasource + generator configuration (extend with models as needed)
+  migrations/      # Prisma migration history and SQL snapshots
+  schema.prisma    # Datasource, generator, and NextAuth-compatible models
+  seed.ts          # TypeScript seed script for local/demo data
 
 tests/
   healthz-route.test.ts  # Example Vitest suite covering the health endpoint
 ```
 
-The project uses the Next.js App Router, allowing you to colocate UI, server actions, and API routes. Prisma is configured to target the `DATABASE_URL` from your environment and is ready for further schema modelling. Tests are executed with Vitest in a Node environment.
+The project uses the Next.js App Router, allowing you to colocate UI, server actions, and API routes. Prisma targets the `DATABASE_URL` from your environment, ships with a NextAuth-ready schema, and provides a seed script for demo data. Tests are executed with Vitest in a Node environment.
 
 ---
 
@@ -98,6 +100,23 @@ cp .env.example .env
 | `API_PORT` | Port exposed by `pnpm dev` / `pnpm start`. | `3000` |
 | `DATABASE_URL` | Connection string used by Prisma. | `postgresql://postgres:postgres@localhost:5432/project?schema=public` |
 
+### Authentication (NextAuth)
+
+| Variable | Description | Example |
+| --- | --- | --- |
+| `NEXTAUTH_URL` | Base URL used for OAuth callbacks and email links. | `http://localhost:3000` |
+| `NEXTAUTH_SECRET` | Random string for signing/encrypting NextAuth sessions. | `replace-with-a-strong-secret` |
+| `NEXTAUTH_TRUST_HOST` | Set to `1` during local development to trust the incoming host header. | `1` |
+
+#### OAuth provider placeholders
+
+| Variable | Description | Example |
+| --- | --- | --- |
+| `GITHUB_ID` | GitHub OAuth application client ID. | `your-github-client-id` |
+| `GITHUB_SECRET` | GitHub OAuth application client secret. | `your-github-client-secret` |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID. | `your-google-client-id.apps.googleusercontent.com` |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret. | `your-google-client-secret` |
+
 ### PostgreSQL (Docker Compose)
 
 | Variable | Description | Example |
@@ -130,17 +149,33 @@ cp .env.example .env
    docker compose up db -d
    ```
 
-4. **Generate Prisma client (runs automatically on first `prisma` command)**
+4. **Apply database migrations**
    ```bash
-   pnpm prisma generate
+   pnpm db:migrate
    ```
 
-5. **Launch the dev server**
+5. **Seed the database (optional but recommended for demo credentials)**
+   ```bash
+   pnpm db:seed
+   ```
+
+6. **Launch the dev server**
    ```bash
    pnpm dev
    ```
 
-Visit [http://localhost:3000](http://localhost:3000) to validate the app is running.
+Visit [http://localhost:3000](http://localhost:3000) to validate the app is running. See [Demo credentials](#demo-credentials) for the seeded login details.
+
+---
+
+## Demo credentials
+
+Running `pnpm db:seed` will upsert a demo user that can be used for local authentication flows.
+
+- **Email:** `demo.user@example.com`
+- **Password:** `ChangeMe123!`
+
+Re-run the seed command to restore the credentials if you change them during testing.
 
 ---
 
@@ -154,22 +189,29 @@ Visit [http://localhost:3000](http://localhost:3000) to validate the app is runn
 
 ## Database & migrations
 
-Prisma is configured with a PostgreSQL datasource (`prisma/schema.prisma`). When you add models:
+Prisma is configured with a PostgreSQL datasource (`prisma/schema.prisma`) and the repository ships with an initial migration that provisions the NextAuth models. When you expand the schema:
 
-1. Update `schema.prisma` with your changes.
-2. Create a new migration once Postgres is running:
-   ```bash
-   pnpm prisma migrate dev --name add_your_model
-   ```
-3. For CI/production, apply migrations deterministically:
-   ```bash
-   pnpm prisma migrate deploy
-   ```
-4. Regenerate the Prisma client whenever the schema changes:
-   ```bash
-   pnpm prisma generate
-   ```
-   > The starter schema doesn't define models yet, so Prisma will print a reminder until you add your own models.
+- Update `schema.prisma` with your changes.
+- Create and apply a new migration while Postgres is running:
+  ```bash
+  pnpm db:migrate -- --name add_your_model
+  ```
+- For quick experiments where you do not want to generate SQL, push the schema directly (may reset data for incompatible changes):
+  ```bash
+  pnpm db:push
+  ```
+- Reseed baseline data at any time:
+  ```bash
+  pnpm db:seed
+  ```
+- In CI/production, apply committed migrations deterministically:
+  ```bash
+  pnpm prisma migrate deploy
+  ```
+
+> Tip: When forwarding additional arguments to Prisma through the `pnpm db:*` scripts, separate them with `--` as shown above.
+
+Running `db:migrate` or `db:push` automatically regenerates the Prisma client. If you need to trigger it manually, run `pnpm prisma generate`.
 
 ---
 
@@ -187,6 +229,9 @@ Prisma is configured with a PostgreSQL datasource (`prisma/schema.prisma`). When
 | `pnpm format` | Format the entire repository with Prettier. |
 | `pnpm format:check` | Check formatting without writing changes. |
 | `pnpm test` | Execute Vitest in run mode. |
+| `pnpm db:migrate` | Run `prisma migrate dev` to create/apply migrations locally. |
+| `pnpm db:push` | Push the Prisma schema to the database without generating SQL migrations. |
+| `pnpm db:seed` | Execute the Prisma seed script and populate demo data. |
 | `pnpm prisma ...` | Forward Prisma CLI commands (e.g. `pnpm prisma db pull`). |
 
 `lint-staged` mirrors the `pnpm lint:eslint` and `pnpm format` behaviours but only against staged files, keeping feedback fast.
