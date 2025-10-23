@@ -1,0 +1,14 @@
+run_pnpm() {
+  if command -v pnpm >/dev/null 2>&1; then
+    pnpm "$@"
+  elif command -v corepack >/dev/null 2>&1; then
+    corepack pnpm "$@"
+  else
+    echo "husky (pre-commit): pnpm is required but was not found" >&2
+    exit 1
+  fi
+}
+
+run_pnpm lint-staged
+run_pnpm lint
+run_pnpm typecheck
