@@ -41,8 +41,16 @@ app/
   layout.tsx       # Root layout shared across the app router
   page.tsx         # Home page
 
+apps/
+  api/
+    src/
+      server.ts    # Standalone Node.js API used during local development
+
 prisma/
   schema.prisma    # Datasource + generator configuration (extend with models as needed)
+
+scripts/
+  wait-for-db.mjs  # Utility invoked by Docker Compose to block until Postgres is ready
 
 tests/
   healthz-route.test.ts  # Example Vitest suite covering the health endpoint
@@ -88,14 +96,16 @@ cp .env.example .env
 | Variable | Description | Example |
 | --- | --- | --- |
 | `NEXT_PUBLIC_APP_NAME` | Display name surfaced in the UI. | `Project Starter` |
-| `NEXT_PUBLIC_API_BASE_URL` | Location of the API the browser should talk to. | `http://localhost:3000/api` |
+| `NEXT_PUBLIC_API_BASE_URL` | Location of the API the browser should talk to. | `http://localhost:4000` |
 
 ### Server / API
 
 | Variable | Description | Example |
 | --- | --- | --- |
-| `API_HOST` | Host binding for the Next.js server. | `0.0.0.0` |
-| `API_PORT` | Port exposed by `pnpm dev` / `pnpm start`. | `3000` |
+| `API_HOST` | Host binding for the standalone API server. | `0.0.0.0` |
+| `API_PORT` | Port exposed by the API service. | `4000` |
+| `WEB_HOST` | Host binding for the Next.js dev server. | `0.0.0.0` |
+| `WEB_PORT` | Port exposed by the Next.js dev server. | `3000` |
 | `DATABASE_URL` | Connection string used by Prisma. | `postgresql://postgres:postgres@localhost:5432/project?schema=public` |
 
 ### PostgreSQL (Docker Compose)
@@ -125,30 +135,52 @@ cp .env.example .env
    # Update any secrets/URLs specific to your machine
    ```
 
-3. **Start Postgres (optional but required for Prisma migrations)**
+3. **Launch the Docker Compose development stack (database + API + web)**
    ```bash
-   docker compose up db -d
+   pnpm dev:docker        # attach to logs
+   # or start detached
+   pnpm dev:docker:detach
    ```
+   The stack waits for PostgreSQL to report healthy before booting the API/web containers. Application code is mounted from your working directory so hot reloading works out of the box.
 
-4. **Generate Prisma client (runs automatically on first `prisma` command)**
+4. **Run database migrations when the schema changes**
    ```bash
-   pnpm prisma generate
+   pnpm db:migrate
    ```
+   This script wraps `prisma migrate dev` and requires the Postgres container to be running. Until you add models to `schema.prisma` Prisma will remind you that nothing needs to be migrated.
 
-5. **Launch the dev server**
-   ```bash
-   pnpm dev
-   ```
+5. **Visit the running services**
+   - Web app: [http://localhost:3000](http://localhost:3000)
+   - API health: [http://localhost:4000/healthz](http://localhost:4000/healthz)
 
-Visit [http://localhost:3000](http://localhost:3000) to validate the app is running.
+Next.js still supports `pnpm dev` outside Docker if you prefer to run everything directly on your host machine.
 
 ---
 
 ## Local development workflow
 
+- `pnpm dev:docker` orchestrates PostgreSQL, the standalone API, and the Next.js web app with hot reloading enabled in each container.
+- Prefer `pnpm dev:api` and `pnpm dev` if you want to run the API or web server directly on your host without Docker.
 - Code formatting and linting are consolidated into reusable pnpm scripts.
 - Husky hooks (installed automatically via the `prepare` script) run `lint-staged` on staged files before every commit and enforce Conventional Commits via Commitlint.
 - Vitest provides fast feedback for unit tests. Add new tests under `tests/`.
+
+---
+
+## Docker Compose stack
+
+The root `docker-compose.yml` wires together the runtime dependencies used during development:
+
+- **db** &mdash; PostgreSQL 16 with a persistent volume (`postgres-data`) and a built-in healthcheck.
+- **api** &mdash; Node.js 20 container running `pnpm dev:api` after waiting for the database to become available.
+- **web** &mdash; Node.js 20 container running the Next.js dev server with hot module reload.
+
+All services join the `project` bridge network so they can reference each other by service name (e.g. the API reaches Postgres via `db:5432`). Ports 4000 (API) and 3000 (web) are published to the host, and both services expose health endpoints:
+
+- API service: `http://localhost:4000/healthz`
+- Next.js route: `http://localhost:3000/api/healthz`
+
+The containers rely on the `.env` file in the project root. Copy the example file before running Docker Compose to avoid missing environment variables. Install dependencies with `pnpm install` on the host so `node_modules/` is available to the containers.
 
 ---
 
@@ -159,17 +191,17 @@ Prisma is configured with a PostgreSQL datasource (`prisma/schema.prisma`). When
 1. Update `schema.prisma` with your changes.
 2. Create a new migration once Postgres is running:
    ```bash
-   pnpm prisma migrate dev --name add_your_model
+   pnpm db:migrate --name add_your_model
    ```
 3. For CI/production, apply migrations deterministically:
    ```bash
-   pnpm prisma migrate deploy
+   pnpm db:migrate:deploy
    ```
 4. Regenerate the Prisma client whenever the schema changes:
    ```bash
-   pnpm prisma generate
+   pnpm db:generate
    ```
-   > The starter schema doesn't define models yet, so Prisma will print a reminder until you add your own models.
+   > The starter schema doesn't define models yet, so Prisma will print a reminder until you add your own models. Until you add models `pnpm db:migrate` will exit early with a descriptive message.
 
 ---
 
@@ -177,7 +209,18 @@ Prisma is configured with a PostgreSQL datasource (`prisma/schema.prisma`). When
 
 | Command | Description |
 | --- | --- |
-| `pnpm dev` | Start the Next.js development server. |
+| `pnpm dev` | Start the Next.js development server on the host machine. |
+| `pnpm dev:api` | Run the standalone API server with hot reloading (via `tsx`). |
+| `pnpm dev:docker` | Bring up the Docker Compose stack and attach to service logs. |
+| `pnpm dev:docker:build` | Rebuild service images before starting the stack. |
+| `pnpm dev:docker:detach` | Start the Docker Compose stack in the background. |
+| `pnpm docker:down` | Stop the Docker Compose stack. |
+| `pnpm docker:clean` | Stop the stack and remove volumes/orphaned containers. |
+| `pnpm db:migrate` | Run `prisma migrate dev` (supports `--name` for migration labels). |
+| `pnpm db:migrate:deploy` | Apply migrations in deploy mode (used for CI/production). |
+| `pnpm db:reset` | Reset the local database using Prisma. |
+| `pnpm db:generate` | Regenerate the Prisma client. |
+| `pnpm db:studio` | Launch Prisma Studio. |
 | `pnpm build` | Create a production build. |
 | `pnpm start` | Run the production server (after `pnpm build`). |
 | `pnpm typecheck` | Run the TypeScript compiler in `--noEmit` mode. |
@@ -226,7 +269,7 @@ Keep the CI green by ensuring the lint/typecheck/test/build commands pass locall
 1. Capture environment variables from `.env.example` and configure them in your hosting provider (Vercel, Fly.io, Render, etc.).
 2. Build the application: `pnpm build`.
 3. Run the production server: `pnpm start` (uses the `API_PORT` specified in `.env`).
-4. Provision PostgreSQL and apply migrations with `pnpm prisma migrate deploy` during deployment.
+4. Provision PostgreSQL and apply migrations with `pnpm db:migrate:deploy` during deployment.
 5. Monitor `/api/healthz` for liveness checks.
 
 When containerising, mount the `docker-compose.yml` Postgres configuration as a reference for required variables.

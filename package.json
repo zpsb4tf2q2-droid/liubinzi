@@ -5,6 +5,13 @@
   "packageManager": "pnpm@9.12.3",
   "scripts": {
     "dev": "next dev",
+    "dev:web": "next dev",
+    "dev:api": "tsx watch --clear-screen=false apps/api/src/server.ts",
+    "dev:docker": "docker compose up",
+    "dev:docker:build": "docker compose up --build",
+    "dev:docker:detach": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:clean": "docker compose down --volumes --remove-orphans",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
@@ -14,6 +21,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:reset": "prisma migrate reset",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -45,6 +57,7 @@
     "prettier": "^3.6.2",
     "prisma": "^5.21.1",
     "tailwindcss": "^3.4.13",
+    "tsx": "^4.19.2",
     "typescript": "^5",
     "vitest": "^2.1.4"
   }
