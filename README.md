@@ -197,6 +197,7 @@ Prisma is configured with a PostgreSQL datasource (`prisma/schema.prisma`). When
 
 - **Unit tests:** Vitest (`tests/**/*.test.ts`).
 - **API verification:** The example suite exercises the `/api/healthz` endpoint by calling the exported handler directly.
+- **Smoke checks:** Playwright specs live in `playwright/` and are exercised in CI for headless smoke coverage.
 - **Extending coverage:** Create additional suites under `tests/` and rely on the Vitest Node environment. For React component tests, configure `@testing-library/react` and a jsdom environment.
 
 Run locally with:
@@ -209,15 +210,31 @@ pnpm test
 
 ## Continuous integration
 
-CI is configured via `.github/workflows/ci.yml` and runs on every push to `main` and each pull request:
+CI runs through `.github/workflows/ci.yml` on every push to `main` and for all pull requests. The workflow bootstraps pnpm via `pnpm/action-setup`, caches the pnpm store (Turborepo-friendly), and surfaces branch-protection ready job names so failures are easy to spot:
 
-1. Install dependencies with npm (Node.js 20 with caching).
-2. Run `npm run lint` (which delegates to the shared linting/typecheck scripts).
-3. Run `npm run build` to ensure the production bundle compiles.
+| Job name | Purpose | Command(s) |
+| --- | --- | --- |
+| `lint` | Static analysis and lint enforcement. | `pnpm lint` |
+| `typecheck` | Type-only validation to catch regressions early. | `pnpm typecheck` |
+| `test (vitest)` | Runs the Node/Vitest unit suites. | `pnpm test` |
+| `prisma` | Generates the Prisma client and applies migrations against an ephemeral Postgres 16 container. | `pnpm prisma generate`<br>`pnpm prisma migrate deploy` |
+| `test (playwright)` | Executes Playwright smoke checks headlessly via `xvfb-run`, caching browsers for faster reruns. | `pnpm exec playwright install --with-deps`<br>`pnpm exec playwright test --project=chromium` |
+| `build` | Produces the production bundle, restores `.next/cache`, and publishes the output as an artifact. | `pnpm build` |
 
-> Although CI uses npm today, the underlying scripts are package-manager agnostic, so you can run `pnpm lint`, `pnpm build`, etc. locally without discrepancies.
+Each job appends a short summary to the GitHub run so you can triage issues without diving into logs. Prisma uses `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/project?schema=public`, backed by a disposable Postgres service container.
 
-Keep the CI green by ensuring the lint/typecheck/test/build commands pass locally before opening a pull request.
+To mirror CI locally before opening a PR, run:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm exec playwright install --with-deps
+pnpm exec playwright test --project=chromium
+pnpm prisma generate
+pnpm prisma migrate deploy
+pnpm build
+```
 
 ---
 
