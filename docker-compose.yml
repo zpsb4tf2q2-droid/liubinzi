@@ -9,10 +9,12 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-next_app}
+      POSTGRES_TEST_DB: ${POSTGRES_TEST_DB:-next_app_test}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./docker/init-test-db.sh:/docker-entrypoint-initdb.d/init-test-db.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB:-next_app} -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
