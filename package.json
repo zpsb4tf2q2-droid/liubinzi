@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "test": "pnpm lint && pnpm typecheck",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
