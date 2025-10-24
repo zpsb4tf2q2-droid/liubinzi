@@ -29,3 +29,15 @@ pnpm-debug.log*
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+*.pytest_cache/
+.python-version
+.venv/
+venv/
+*.sqlite3
+*.db

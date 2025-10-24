@@ -1,0 +1,1 @@
+"""Hardware domain package placeholder."""
