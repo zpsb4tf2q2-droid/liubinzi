@@ -98,6 +98,17 @@ cp .env.example .env
 | `API_PORT` | Port exposed by `pnpm dev` / `pnpm start`. | `3000` |
 | `DATABASE_URL` | Connection string used by Prisma. | `postgresql://postgres:postgres@localhost:5432/project?schema=public` |
 
+### Authentication (NextAuth & OAuth providers)
+
+| Variable | Description | Example |
+| --- | --- | --- |
+| `NEXTAUTH_URL` | Base URL passed to NextAuth. Should match your deployment domain and include `/api/auth`. | `http://localhost:3000/api/auth` |
+| `NEXTAUTH_SECRET` | Cryptographically secure secret used to sign NextAuth cookies. Generate per environment. | `openssl rand -base64 32` |
+| `GITHUB_CLIENT_ID` | GitHub OAuth app client ID (if GitHub auth is enabled). | `ov1d123example` |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth app client secret. | `super-secret` |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID (if Google auth is enabled). | `12345-example.apps.googleusercontent.com` |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret. | `super-secret` |
+
 ### PostgreSQL (Docker Compose)
 
 | Variable | Description | Example |
@@ -223,13 +234,70 @@ Keep the CI green by ensuring the lint/typecheck/test/build commands pass locall
 
 ## Deployment notes
 
-1. Capture environment variables from `.env.example` and configure them in your hosting provider (Vercel, Fly.io, Render, etc.).
-2. Build the application: `pnpm build`.
-3. Run the production server: `pnpm start` (uses the `API_PORT` specified in `.env`).
-4. Provision PostgreSQL and apply migrations with `pnpm prisma migrate deploy` during deployment.
-5. Monitor `/api/healthz` for liveness checks.
+### Shared prerequisites
 
-When containerising, mount the `docker-compose.yml` Postgres configuration as a reference for required variables.
+- Capture the environment variables from `.env.example` and configure them in your hosting provider. Leave provider-specific secrets blank unless you enable that integration.
+- Ensure your production PostgreSQL instance is reachable via `DATABASE_URL`.
+- Run `pnpm prisma migrate deploy` as part of your release pipeline after new migrations are merged.
+
+### Web (Vercel)
+
+[`vercel.json`](./vercel.json) records the build configuration so Vercel can compile the application with pnpm:
+
+- Install command: `pnpm install --frozen-lockfile`
+- Build command: `pnpm build`
+- Output directory: `.next`
+
+After connecting the repository in Vercel, populate the required environment variables through **Settings → Environment Variables**. Suggested values are listed below:
+
+| Key | Example value | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_APP_NAME` | `Project Starter` | Optional display name surfaced in the UI. |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://api.example.com/api` | Point this to the API deployment (Render or Railway). |
+| `NEXTAUTH_URL` | `https://your-web-app.vercel.app/api/auth` | Must match the Vercel domain including `/api/auth`. |
+| `NEXTAUTH_SECRET` | `openssl rand -base64 32` | Generate a unique secret per environment. |
+| `GITHUB_CLIENT_ID` | _(optional)_ | Provider credential if GitHub auth is enabled. |
+| `GITHUB_CLIENT_SECRET` | _(optional)_ | Provider credential if GitHub auth is enabled. |
+| `GOOGLE_CLIENT_ID` | _(optional)_ | Provider credential if Google auth is enabled. |
+| `GOOGLE_CLIENT_SECRET` | _(optional)_ | Provider credential if Google auth is enabled. |
+| `DATABASE_URL` | `postgresql://user:password@host:5432/db?schema=public` | Required if the web runtime executes Prisma queries. |
+
+You can paste the values in bulk using Vercel's **Import Variables** dialog with a payload similar to:
+
+```json
+{
+  "NEXT_PUBLIC_APP_NAME": "Project Starter",
+  "NEXT_PUBLIC_API_BASE_URL": "https://api.example.com/api",
+  "NEXTAUTH_URL": "https://your-web-app.vercel.app/api/auth",
+  "NEXTAUTH_SECRET": "openssl rand -base64 32",
+  "GITHUB_CLIENT_ID": "",
+  "GITHUB_CLIENT_SECRET": "",
+  "GOOGLE_CLIENT_ID": "",
+  "GOOGLE_CLIENT_SECRET": "",
+  "DATABASE_URL": "postgresql://user:password@host:5432/db?schema=public"
+}
+```
+
+### API (Render)
+
+Use [`render.yaml`](./render.yaml) as a blueprint when creating a Render Web Service backed by Docker:
+
+1. Select **Docker** as the runtime and point Render at the repository root—the blueprint references the root [`Dockerfile`](./Dockerfile).
+2. The container exposes port `3000` and runs `pnpm start -- --hostname 0.0.0.0 --port 3000`.
+3. Configure the environment variables defined in `render.yaml` (at minimum `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, and any provider credentials).
+4. Set the health check path to `/api/healthz` to reuse the built-in status endpoint.
+5. Trigger `pnpm prisma migrate deploy` after provisioning the database to apply migrations.
+
+### API (Railway)
+
+For Railway deployments, import [`railway.json`](./railway.json) when creating a new service:
+
+1. Railway builds the container using the repository [`Dockerfile`](./Dockerfile); no extra start command is required.
+2. The service listens on port `3000` and consumes secrets from the deployment environment—populate the keys declared in `railway.json`.
+3. Configure a health check against `/api/healthz` for uptime monitoring.
+4. Include `pnpm prisma migrate deploy` in your deployment pipeline to keep the schema in sync.
+
+Both Render and Railway rely on the same production-ready Docker image, which avoids bundling `.env` files so that runtime configuration always comes from the hosting platform.
 
 ---
 
