@@ -9,6 +9,7 @@ describe("GET /api/healthz", () => {
     expect(response.status).toBe(200);
 
     const payload = await response.json();
-    expect(payload).toEqual({ status: "ok" });
+    expect(payload.status).toBe("ok");
+    expect(typeof payload.timestamp).toBe("number");
   });
 });
