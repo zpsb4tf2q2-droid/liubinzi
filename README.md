@@ -25,8 +25,9 @@ This repository provides a production-ready Next.js 16 application with TypeScri
 8. [Testing strategy](#testing-strategy)
 9. [Continuous integration](#continuous-integration)
 10. [Deployment notes](#deployment-notes)
-11. [Contribution guidelines](#contribution-guidelines)
-12. [Troubleshooting](#troubleshooting)
+11. [Hardware control FastAPI microservice](#hardware-control-fastapi-microservice)
+12. [Contribution guidelines](#contribution-guidelines)
+13. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -230,6 +231,30 @@ Keep the CI green by ensuring the lint/typecheck/test/build commands pass locall
 5. Monitor `/api/healthz` for liveness checks.
 
 When containerising, mount the `docker-compose.yml` Postgres configuration as a reference for required variables.
+
+---
+
+## Hardware control FastAPI microservice
+
+A fully fledged FastAPI service lives under [`backend/`](backend/README.md). It provides JWT authentication, service discovery, hardware control abstractions, data processing helpers, and integration points for Redis and PostgreSQL.
+
+### Quick start
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+uvicorn app.main:app --reload  # exposed on http://localhost:8000
+```
+
+Alternatively, run the entire stack (PostgreSQL + Redis + API) with Docker:
+
+```bash
+docker compose up --build api
+```
+
+The microservice exposes its API at `http://localhost:8000/api/v1`. Refer to [`backend/README.md`](backend/README.md) for detailed architecture notes, environment variables, and testing instructions.
 
 ---
 
