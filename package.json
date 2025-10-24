@@ -3,32 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@9.12.3",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit && eslint . --max-warnings=0",
-    "lint:eslint": "eslint . --max-warnings=0",
-    "lint:fix": "eslint . --max-warnings=0 --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "test": "vitest run",
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "pnpm --filter @project/api db:generate",
+    "db:migrate": "pnpm --filter @project/api db:migrate",
+    "db:push": "pnpm --filter @project/api db:push",
+    "db:studio": "pnpm --filter @project/api db:studio",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
+    "*.{js,jsx,ts,tsx,mjs,mts,cjs}": [
       "pnpm exec eslint --max-warnings=0 --fix"
     ],
-    "*.{js,jsx,ts,tsx,md,css,json}": [
+    "*.{js,jsx,ts,tsx,mjs,mts,cjs,md,css,json}": [
       "pnpm exec prettier --write"
     ]
-  },
-  "dependencies": {
-    "@prisma/client": "^5.21.1",
-    "next": "16.0.0",
-    "react": "19.2.0",
-    "react-dom": "19.2.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
@@ -36,15 +33,16 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.20",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.0",
+    "globals": "^15.12.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10",
-    "postcss": "^8.4.49",
     "prettier": "^3.6.2",
-    "prisma": "^5.21.1",
-    "tailwindcss": "^3.4.13",
+    "turbo": "^2.2.3",
+    "tsx": "^4.19.2",
     "typescript": "^5",
     "vitest": "^2.1.4"
   }
