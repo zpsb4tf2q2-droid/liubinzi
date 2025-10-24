@@ -1,64 +1,39 @@
-# Project Developer Experience Guide
+# Platform Web – Developer Guide
 
-This repository provides a production-ready Next.js 16 application with TypeScript, Tailwind CSS, a lightweight API surface, and Prisma for data access. The goal is to offer a dependable baseline for new services with a consistent developer experience, tooling, and documentation.
+This repository is a pnpm/Turborepo monorepo that currently contains a Next.js 14 web
+application located in `apps/web`. The application uses passwordless authentication powered by
+NextAuth, Prisma, and a reusable magic-link email flow. It also provides a protected dashboard that
+proxies profile information from a NestJS backend via `/api/users/me`.
 
-- **Framework:** Next.js App Router (SSR + API routes)
-- **Language:** TypeScript with strict mode
-- **Styling:** Tailwind CSS
-- **Database:** PostgreSQL (managed locally through Docker Compose)
-- **ORM:** Prisma
-- **Tooling:** pnpm, ESLint, Prettier, Vitest, Husky, lint-staged, Commitlint
+## Tech stack
 
-> ℹ️ All commands below assume you are in the repository root.
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript (strict) with Zod-based environment validation
+- **Styling:** Tailwind CSS with shared UI primitives under `packages/ui`
+- **Authentication:** NextAuth v4 with Prisma adapter (magic link + GitHub OAuth placeholders)
+- **Database:** PostgreSQL via Prisma client in `packages/db`
+- **Tooling:** pnpm, Turborepo, ESLint, Prettier, Vitest, Playwright, Husky, lint-staged, Commitlint
 
----
-
-## Table of Contents
-
-1. [Architecture overview](#architecture-overview)
-2. [Prerequisites](#prerequisites)
-3. [Environment variables](#environment-variables)
-4. [Initial setup](#initial-setup)
-5. [Local development workflow](#local-development-workflow)
-6. [Database & migrations](#database--migrations)
-7. [Available scripts](#available-scripts)
-8. [Testing strategy](#testing-strategy)
-9. [Continuous integration](#continuous-integration)
-10. [Deployment notes](#deployment-notes)
-11. [Contribution guidelines](#contribution-guidelines)
-12. [Troubleshooting](#troubleshooting)
-
----
-
-## Architecture overview
+## Repository layout
 
 ```
-app/
-  api/
-    healthz/
-      route.ts    # Lightweight API route used by monitoring checks
-  globals.css      # Tailwind CSS entry point
-  layout.tsx       # Root layout shared across the app router
-  page.tsx         # Home page
-
-prisma/
-  schema.prisma    # Datasource + generator configuration (extend with models as needed)
-
-tests/
-  healthz-route.test.ts  # Example Vitest suite covering the health endpoint
+apps/
+  web/                 # Next.js application
+    app/               # App Router routes
+    src/               # Application libs, providers, env helpers, components
+    tests/             # Vitest and Playwright tests
+packages/
+  db/                  # Prisma client + schema shared across apps
+  ui/                  # Tailwind-powered UI primitives
 ```
-
-The project uses the Next.js App Router, allowing you to colocate UI, server actions, and API routes. Prisma is configured to target the `DATABASE_URL` from your environment and is ready for further schema modelling. Tests are executed with Vitest in a Node environment.
-
----
 
 ## Prerequisites
 
-- **Node.js 20.x** (use [`corepack`](https://nodejs.org/api/corepack.html) to manage package managers)
-- **pnpm 9** (`corepack enable` enables pnpm globally)
-- **Docker + Docker Compose v2** for running PostgreSQL locally
+- **Node.js 20.x** (installs `corepack` for pnpm)
+- **pnpm 9.x**
+- **Docker** (optional, for PostgreSQL or container builds)
 
-Check your versions:
+Check versions:
 
 ```bash
 node --version
@@ -66,202 +41,134 @@ pnpm --version
 docker compose version
 ```
 
----
-
-## Environment variables
-
-Copy `.env.example` to `.env` and adjust values as necessary. The template is organised by concern and documented below.
-
-```bash
-cp .env.example .env
-```
-
-### Root (repository-wide)
-
-| Variable | Description | Example |
-| --- | --- | --- |
-| `NODE_ENV` | Runtime mode used by Next.js and tooling. | `development` |
-| `NEXT_TELEMETRY_DISABLED` | Opt-out of Next.js telemetry during development/CI. | `1` |
-
-### Web (client-facing Next.js code)
-
-| Variable | Description | Example |
-| --- | --- | --- |
-| `NEXT_PUBLIC_APP_NAME` | Display name surfaced in the UI. | `Project Starter` |
-| `NEXT_PUBLIC_API_BASE_URL` | Location of the API the browser should talk to. | `http://localhost:3000/api` |
-
-### Server / API
-
-| Variable | Description | Example |
-| --- | --- | --- |
-| `API_HOST` | Host binding for the Next.js server. | `0.0.0.0` |
-| `API_PORT` | Port exposed by `pnpm dev` / `pnpm start`. | `3000` |
-| `DATABASE_URL` | Connection string used by Prisma. | `postgresql://postgres:postgres@localhost:5432/project?schema=public` |
-
-### PostgreSQL (Docker Compose)
-
-| Variable | Description | Example |
-| --- | --- | --- |
-| `POSTGRES_USER` | Username for the local Postgres container. | `postgres` |
-| `POSTGRES_PASSWORD` | Password for the local Postgres container. | `postgres` |
-| `POSTGRES_DB` | Database created for the application. | `project` |
-| `POSTGRES_HOST` | Hostname applications should connect to. | `localhost` |
-| `POSTGRES_PORT` | Port exposed by the container. | `5432` |
-| `POSTGRES_SCHEMA` | Default schema Prisma targets. | `public` |
-
----
-
-## Initial setup
+## Getting started
 
 1. **Install dependencies**
    ```bash
-   corepack enable    # one-time, enables pnpm
+   corepack enable   # one-time setup for pnpm
    pnpm install
    ```
 
-2. **Configure environment**
+2. **Configure environment variables**
    ```bash
-   cp .env.example .env
-   # Update any secrets/URLs specific to your machine
+   cp apps/web/.env.example.web apps/web/.env.local
    ```
 
-3. **Start Postgres (optional but required for Prisma migrations)**
+   Update the copied file with values for:
+
+   | Variable | Description |
+   | --- | --- |
+   | `NEXT_PUBLIC_APP_NAME` | Display name used across the UI |
+   | `NEXT_PUBLIC_API_BASE_URL` | Base URL the browser calls (usually `http://localhost:3000/api`) |
+   | `NEXTAUTH_SECRET` | Random string used to sign NextAuth tokens |
+   | `NEXTAUTH_URL` | Public URL of the web app (e.g. `http://localhost:3000`) |
+   | `EMAIL_FROM` | From address for magic link emails |
+   | `BACKEND_API_URL` | Base URL for the NestJS service (e.g. `http://localhost:3333`) |
+   | `GITHUB_ID` / `GITHUB_SECRET` | Optional GitHub OAuth credentials |
+
+3. **(Optional) Run PostgreSQL**
    ```bash
    docker compose up db -d
    ```
 
-4. **Generate Prisma client (runs automatically on first `prisma` command)**
+4. **Generate the Prisma client**
    ```bash
-   pnpm prisma generate
+   pnpm --filter @repo/db generate
    ```
 
-5. **Launch the dev server**
+5. **Start the dev server**
    ```bash
    pnpm dev
    ```
 
-Visit [http://localhost:3000](http://localhost:3000) to validate the app is running.
+Visit [http://localhost:3000](http://localhost:3000) to verify the application is running.
 
----
+## Useful scripts
 
-## Local development workflow
-
-- Code formatting and linting are consolidated into reusable pnpm scripts.
-- Husky hooks (installed automatically via the `prepare` script) run `lint-staged` on staged files before every commit and enforce Conventional Commits via Commitlint.
-- Vitest provides fast feedback for unit tests. Add new tests under `tests/`.
-
----
-
-## Database & migrations
-
-Prisma is configured with a PostgreSQL datasource (`prisma/schema.prisma`). When you add models:
-
-1. Update `schema.prisma` with your changes.
-2. Create a new migration once Postgres is running:
-   ```bash
-   pnpm prisma migrate dev --name add_your_model
-   ```
-3. For CI/production, apply migrations deterministically:
-   ```bash
-   pnpm prisma migrate deploy
-   ```
-4. Regenerate the Prisma client whenever the schema changes:
-   ```bash
-   pnpm prisma generate
-   ```
-   > The starter schema doesn't define models yet, so Prisma will print a reminder until you add your own models.
-
----
-
-## Available scripts
+All commands are executed from the repository root unless otherwise noted.
 
 | Command | Description |
 | --- | --- |
-| `pnpm dev` | Start the Next.js development server. |
-| `pnpm build` | Create a production build. |
-| `pnpm start` | Run the production server (after `pnpm build`). |
-| `pnpm typecheck` | Run the TypeScript compiler in `--noEmit` mode. |
-| `pnpm lint` | Run type-checking and ESLint with `--max-warnings=0`. |
-| `pnpm lint:eslint` | Run ESLint alone. |
-| `pnpm lint:fix` | Auto-fix lint issues where possible. |
-| `pnpm format` | Format the entire repository with Prettier. |
-| `pnpm format:check` | Check formatting without writing changes. |
-| `pnpm test` | Execute Vitest in run mode. |
-| `pnpm prisma ...` | Forward Prisma CLI commands (e.g. `pnpm prisma db pull`). |
+| `pnpm dev` | Start the Next.js dev server for `apps/web` |
+| `pnpm build` | Build all workspaces via Turborepo |
+| `pnpm start` | Run the production server (after `pnpm build`) |
+| `pnpm lint` | Execute ESLint across projects |
+| `pnpm typecheck` | Run TypeScript in `--noEmit` mode |
+| `pnpm test` | Run Vitest suites |
+| `pnpm --filter web test:e2e` | Execute Playwright smoke tests |
+| `pnpm --filter @repo/db migrate:dev` | Apply Prisma migrations locally |
 
-`lint-staged` mirrors the `pnpm lint:eslint` and `pnpm format` behaviours but only against staged files, keeping feedback fast.
+> Husky + lint-staged ensure formatting and linting are enforced on commits.
 
----
+## Testing
 
-## Testing strategy
+- **Unit & component tests:** Vitest with React Testing Library (`apps/web/tests/**/*.test.tsx`).
+- **Auth/env logic tests:** Validated alongside component tests.
+- **End-to-end smoke test:** Playwright script in
+  `apps/web/tests/e2e/auth.spec.ts` walks through the magic-link login flow and verifies that the
+  protected dashboard is reachable.
 
-- **Unit tests:** Vitest (`tests/**/*.test.ts`).
-- **API verification:** The example suite exercises the `/api/healthz` endpoint by calling the exported handler directly.
-- **Extending coverage:** Create additional suites under `tests/` and rely on the Vitest Node environment. For React component tests, configure `@testing-library/react` and a jsdom environment.
-
-Run locally with:
+Run everything with:
 
 ```bash
-pnpm test
+pnpm test                     # Vitest
+pnpm --filter web test:e2e     # Playwright
 ```
 
----
+## Authentication flow
 
-## Continuous integration
+1. Users request a magic link from `/sign-in`. We use a development transport (`nodemailer`
+   stream transport) and log magic links to the console.
+2. During development, the latest link can be fetched via
+   `/api/testing/verification-link?email=<user>` to support automated testing.
+3. The dashboard (`/dashboard`) requires an active session. It proxies requests to
+   `/api/users/me`, which forwards the bearer token to the NestJS service at
+   `${BACKEND_API_URL}/v1/users/me`.
 
-CI is configured via `.github/workflows/ci.yml` and runs on every push to `main` and each pull request:
+## Prisma / database management
 
-1. Install dependencies with npm (Node.js 20 with caching).
-2. Run `npm run lint` (which delegates to the shared linting/typecheck scripts).
-3. Run `npm run build` to ensure the production bundle compiles.
+The Prisma schema lives in `packages/db/prisma/schema.prisma` and powers the NextAuth models. To
+adjust the schema:
 
-> Although CI uses npm today, the underlying scripts are package-manager agnostic, so you can run `pnpm lint`, `pnpm build`, etc. locally without discrepancies.
+```bash
+pnpm --filter @repo/db migrate:dev -- --name add_table
+pnpm --filter @repo/db generate
+```
 
-Keep the CI green by ensuring the lint/typecheck/test/build commands pass locally before opening a pull request.
+For production deployments, run `pnpm --filter @repo/db migrate:deploy`.
 
----
+## Docker image
 
-## Deployment notes
+A production-ready container image can be built with:
 
-1. Capture environment variables from `.env.example` and configure them in your hosting provider (Vercel, Fly.io, Render, etc.).
-2. Build the application: `pnpm build`.
-3. Run the production server: `pnpm start` (uses the `API_PORT` specified in `.env`).
-4. Provision PostgreSQL and apply migrations with `pnpm prisma migrate deploy` during deployment.
-5. Monitor `/api/healthz` for liveness checks.
+```bash
+docker build -t platform-web .
+```
 
-When containerising, mount the `docker-compose.yml` Postgres configuration as a reference for required variables.
+The `Dockerfile` performs a multi-stage, pnpm-based build optimised for Vercel-style deployments. It
+runs the standalone Next.js server and exposes port `3000`.
 
----
+Run the container:
 
-## Contribution guidelines
+```bash
+docker run --env-file apps/web/.env.local -p 3000:3000 platform-web
+```
 
-1. **Branching strategy**
-   - `main` stays deployable at all times.
-   - Use topic branches prefixed by type, e.g. `feature/<ticket>`, `fix/<issue>`, `chore/<description>`.
+## Turborepo pipelines
 
-2. **Commit style**
-   - Follow [Conventional Commits](https://www.conventionalcommits.org/) enforced by Commitlint.
-   - Examples: `feat: add onboarding hero`, `fix(api): handle missing auth header`, `chore: update dependencies`.
+Turborepo orchestrates tasks via `turbo.json`:
 
-3. **Pre-commit checks**
-   - Husky runs automatically after `pnpm install` thanks to the `prepare` script.
-   - `lint-staged` applies Prettier and ESLint fixes to staged files before the commit is created.
-
-4. **Pull requests**
-   - Rebase on the latest `main` before requesting review.
-   - Ensure `pnpm lint`, `pnpm test`, and `pnpm build` succeed locally.
-   - Update documentation (`README.md`, `.env.example`, etc.) when behaviour or configuration changes.
-
----
+- `build`, `lint`, `test`, and `typecheck` all cascade to dependencies before running a task in the
+  target package.
+- `dev` remains uncached to ensure fast iteration in development.
 
 ## Troubleshooting
 
-| Issue | Symptoms | Resolution |
-| --- | --- | --- |
-| Prisma cannot reach the database | `P1001` errors during `pnpm prisma` commands | Confirm `docker compose up db` is running, check `POSTGRES_HOST/PORT` values, ensure the container port is not already in use. |
-| `prisma migrate dev` fails due to existing migrations | Error indicating drift or unapplied changes | Run `pnpm prisma migrate status` to inspect drift. If resetting locally is acceptable, execute `pnpm prisma migrate reset` (this wipes local data). |
-| Postgres container fails to start | Container exits immediately | Remove the volume with `docker compose down --volumes` and try again; stale data can prevent boot. |
-| `pnpm test` cannot find modules | Typings mismatch or missing install | Run `pnpm install` to regenerate `node_modules` and `pnpm prisma generate` if the client types changed. |
-| Husky hooks not executing | No pre-commit linting/formatting occurs | Ensure you have run `pnpm install` (installs hooks via `prepare`) and that the scripts inside `.husky/` remain executable (`chmod +x .husky/*`). |
+| Issue | Resolution |
+| --- | --- |
+| Missing magic link email | Check server logs for the generated URL or query `/api/testing/verification-link`. |
+| Dashboard proxy returns errors | Ensure `BACKEND_API_URL` is reachable and the session token is forwarded correctly. |
+| Prisma client missing | Run `pnpm --filter @repo/db generate` after modifying the schema. |
+| Playwright test hangs | Confirm the dev server started (Playwright manages this automatically via `webServer`). |
 
-Need more help? Open an issue or reach out to the project maintainers with reproduction steps.
+For questions or enhancements, open an issue or reach out to the maintainers.
