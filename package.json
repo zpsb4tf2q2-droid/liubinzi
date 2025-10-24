@@ -5,8 +5,11 @@
   "packageManager": "pnpm@9.12.3",
   "scripts": {
     "dev": "next dev",
+    "dev:api": "turbo run dev --filter=api",
     "build": "next build",
+    "build:api": "turbo run build --filter=api",
     "start": "next start",
+    "start:api": "pnpm --filter api start",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit && eslint . --max-warnings=0",
     "lint:eslint": "eslint . --max-warnings=0",
@@ -14,6 +17,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "test:api": "turbo run test --filter=api",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -45,6 +49,7 @@
     "prettier": "^3.6.2",
     "prisma": "^5.21.1",
     "tailwindcss": "^3.4.13",
+    "turbo": "^2.0.11",
     "typescript": "^5",
     "vitest": "^2.1.4"
   }
