@@ -41,6 +41,13 @@ app/
   layout.tsx       # Root layout shared across the app router
   page.tsx         # Home page
 
+apps/
+  api/
+    src/
+      main.ts
+      health/       # Health checks for the NestJS API service
+      users/        # Authenticated user profile endpoint
+
 prisma/
   schema.prisma    # Datasource + generator configuration (extend with models as needed)
 
@@ -48,7 +55,7 @@ tests/
   healthz-route.test.ts  # Example Vitest suite covering the health endpoint
 ```
 
-The project uses the Next.js App Router, allowing you to colocate UI, server actions, and API routes. Prisma is configured to target the `DATABASE_URL` from your environment and is ready for further schema modelling. Tests are executed with Vitest in a Node environment.
+The project now includes a standalone NestJS service alongside the Next.js application. Prisma is configured to target the `DATABASE_URL` from your environment and is ready for further schema modelling. Browser-focused tests are executed with Vitest, while the API exposes dedicated Jest suites under `apps/api/test`.
 
 ---
 
@@ -70,10 +77,11 @@ docker compose version
 
 ## Environment variables
 
-Copy `.env.example` to `.env` and adjust values as necessary. The template is organised by concern and documented below.
+Copy `.env.example` to `.env` and adjust values as necessary. The template is organised by concern and documented below. The NestJS service reads its own environment file; copy `.env.example.api` to `.env.api` if you plan to run it standalone.
 
 ```bash
 cp .env.example .env
+cp .env.example.api .env.api
 ```
 
 ### Root (repository-wide)
@@ -88,15 +96,17 @@ cp .env.example .env
 | Variable | Description | Example |
 | --- | --- | --- |
 | `NEXT_PUBLIC_APP_NAME` | Display name surfaced in the UI. | `Project Starter` |
-| `NEXT_PUBLIC_API_BASE_URL` | Location of the API the browser should talk to. | `http://localhost:3000/api` |
+| `NEXT_PUBLIC_API_BASE_URL` | Location of the API the browser should talk to. | `http://localhost:4000` |
 
 ### Server / API
 
 | Variable | Description | Example |
 | --- | --- | --- |
-| `API_HOST` | Host binding for the Next.js server. | `0.0.0.0` |
-| `API_PORT` | Port exposed by `pnpm dev` / `pnpm start`. | `3000` |
+| `API_HOST` | Host binding for the API server. | `0.0.0.0` |
+| `API_PORT` | Port exposed by `pnpm dev:api` / Docker. | `4000` |
 | `DATABASE_URL` | Connection string used by Prisma. | `postgresql://postgres:postgres@localhost:5432/project?schema=public` |
+| `AUTH_JWT_SECRET` | Secret used to validate JWT bearer tokens. | `super-secret-key` |
+| `SESSION_HEADER_NAME` | Header forwarded from the web app that carries a session token. | `x-session-token` |
 
 ### PostgreSQL (Docker Compose)
 
@@ -135,12 +145,13 @@ cp .env.example .env
    pnpm prisma generate
    ```
 
-5. **Launch the dev server**
+5. **Launch the dev servers**
    ```bash
-   pnpm dev
+   pnpm dev          # Next.js frontend
+   pnpm dev:api      # NestJS API (runs on http://localhost:4000)
    ```
 
-Visit [http://localhost:3000](http://localhost:3000) to validate the app is running.
+Visit [http://localhost:3000](http://localhost:3000) to validate the app is running and hit [http://localhost:4000/health](http://localhost:4000/health) for the API health check.
 
 ---
 
@@ -178,8 +189,11 @@ Prisma is configured with a PostgreSQL datasource (`prisma/schema.prisma`). When
 | Command | Description |
 | --- | --- |
 | `pnpm dev` | Start the Next.js development server. |
-| `pnpm build` | Create a production build. |
-| `pnpm start` | Run the production server (after `pnpm build`). |
+| `pnpm dev:api` | Start the NestJS API with live reload. |
+| `pnpm build` | Create a production build of the Next.js app. |
+| `pnpm build:api` | Build the NestJS API through Turborepo. |
+| `pnpm start` | Run the Next.js production server (after `pnpm build`). |
+| `pnpm start:api` | Run the compiled NestJS API (`apps/api/dist/main.js`). |
 | `pnpm typecheck` | Run the TypeScript compiler in `--noEmit` mode. |
 | `pnpm lint` | Run type-checking and ESLint with `--max-warnings=0`. |
 | `pnpm lint:eslint` | Run ESLint alone. |
@@ -187,6 +201,7 @@ Prisma is configured with a PostgreSQL datasource (`prisma/schema.prisma`). When
 | `pnpm format` | Format the entire repository with Prettier. |
 | `pnpm format:check` | Check formatting without writing changes. |
 | `pnpm test` | Execute Vitest in run mode. |
+| `pnpm test:api` | Run the NestJS API Jest suites via Turborepo. |
 | `pnpm prisma ...` | Forward Prisma CLI commands (e.g. `pnpm prisma db pull`). |
 
 `lint-staged` mirrors the `pnpm lint:eslint` and `pnpm format` behaviours but only against staged files, keeping feedback fast.
@@ -195,14 +210,16 @@ Prisma is configured with a PostgreSQL datasource (`prisma/schema.prisma`). When
 
 ## Testing strategy
 
-- **Unit tests:** Vitest (`tests/**/*.test.ts`).
-- **API verification:** The example suite exercises the `/api/healthz` endpoint by calling the exported handler directly.
-- **Extending coverage:** Create additional suites under `tests/` and rely on the Vitest Node environment. For React component tests, configure `@testing-library/react` and a jsdom environment.
+- **Unit tests (web):** Vitest (`tests/**/*.test.ts`).
+- **Unit tests (API):** Jest (`apps/api/test/**/*.spec.ts`) with ts-jest.
+- **API verification:** The NestJS service exposes `/health` and `/v1/users/me`; compose higher-level tests by hitting the compiled server or mocking services.
+- **Extending coverage:** Create additional suites under `tests/` for web code and `apps/api/test/` for API modules.
 
 Run locally with:
 
 ```bash
-pnpm test
+pnpm test          # Web Vitest suites
+pnpm test:api      # NestJS Jest suites
 ```
 
 ---
@@ -223,13 +240,14 @@ Keep the CI green by ensuring the lint/typecheck/test/build commands pass locall
 
 ## Deployment notes
 
-1. Capture environment variables from `.env.example` and configure them in your hosting provider (Vercel, Fly.io, Render, etc.).
+1. Capture environment variables from `.env.example` (web) and `.env.example.api` (NestJS) and configure them in your hosting provider (Vercel, Fly.io, Render, etc.).
 2. Build the application: `pnpm build`.
-3. Run the production server: `pnpm start` (uses the `API_PORT` specified in `.env`).
-4. Provision PostgreSQL and apply migrations with `pnpm prisma migrate deploy` during deployment.
-5. Monitor `/api/healthz` for liveness checks.
+3. Build the API: `pnpm build:api`.
+4. Run the production servers: `pnpm start` for web, `pnpm start:api` (or `node apps/api/dist/main.js`) for the API.
+5. Provision PostgreSQL and apply migrations with `pnpm prisma migrate deploy` during deployment.
+6. Monitor `/health` for the API and `/api/healthz` for the Next.js route-level health check.
 
-When containerising, mount the `docker-compose.yml` Postgres configuration as a reference for required variables.
+When containerising, mount the `docker-compose.yml` Postgres configuration as a reference for required variables or use the multi-stage `apps/api/Dockerfile` for the NestJS service.
 
 ---
 
