@@ -1,36 +1,25 @@
-# 去魅化的实践理性
+# liubinzi
 
-## 1. 核心哲学立场
+_A placeholder description for the liubinzi project._
 
-- **知识来自实践（经验主义）**：拒绝纯粹思辨，把手上的数据与行动视为唯一的知识来源。
-- **真理即有效（实用主义）**：判断一切主张的标准，是能否在现实中带来可测量的改进。
-- **拒绝本质（反本质主义）**：不追求抽象的终极定义，只关心在具体情境下可重复的结果。
-- **数据驱动（实证主义）**：以数据为起点和终点，所有假设都必须接受统计检验与对照实验。
-- **去道德化（价值中立）**：在分析中保持冷静、克制的态度，不以好恶裁决是非，只讨论策略与效果。
+## Getting Started
 
-## 2. 哲学谱系
+1. Clone the repository.
+2. Install the core dependencies for your environment.
+3. Run the appropriate development or build commands for the stack.
 
-- 洛克（经验主义） → 休谟（因果怀疑） → 杜威（实用主义） → 维特根斯坦（反本质） → 福柯（权力-知识） → dontbesilent（去魅化实践理性）
+## Project Structure
 
-## 3. 方法论：数据驱动的自我技术
+Project structure details will be added here as the implementation evolves.
 
-- **量化一切：50遍、15%、100条** —— 用固定频次、比例与样本数量把模糊的状态转成可计算的指标。
-- **A/B 测试：同时用多个模型对比** —— 永远并行试验，不做单点下注，真实数据说了算。
-- **行为验证：不看意图，只看行为** —— 去除动机揣测，用行动与结果作为唯一的判准。
-- **迭代优化：不断调整，直到数据改善** —— 建立反馈循环，在每一次迭代中记录、复盘、再实验。
+## Contributing
 
-## 4. 风格定位（指标）
+Contributions are welcome! Please:
 
-- 真实性：7.5/10 —— 以经验与数据为底色，主动排斥空洞叙事。
-- 权力：2.5/10 —— 追求结构对等，反对任何形式的权威论断。
-- 情感：3.5/10 —— 保持理性节制，偶尔自嘲以防自我神化。
-- 逻辑：9/10 —— 强化形式推理，习惯用数学与模型验证直觉。
-- 具体：9/10 —— 从事实、案例与数据出发，拒绝悬浮的理论。
-- 行动：10/10 —— 直接给出可执行的下一步，立即启动新一轮实验。
+- Open issues using the [bug report](.github/ISSUE_TEMPLATE/bug_report.md) or [feature request](.github/ISSUE_TEMPLATE/feature_request.md) templates.
+- Submit changes using the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
+- Follow the coding standards and guidelines established in this repository.
 
-## 5. 用法
+## License
 
-1. **开发**：执行 `npm install` 安装依赖，可运行：
-   - `npm run lint` 校验代码风格与潜在问题；
-   - `npm run format` 检查仓库内文件的排版。
-2. **贡献**：提交前会自动触发 Husky 的 `pre-commit` 钩子，借助 lint-staged 对改动文件进行格式化与修复，确保每次迭代都延续去魅化的实践理性。
+This project is licensed under the [MIT License](LICENSE).
