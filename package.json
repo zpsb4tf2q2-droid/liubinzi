@@ -1,51 +1,34 @@
 {
-  "name": "project",
+  "name": "qumeihua-shijian-lixing",
   "version": "0.1.0",
+  "license": "MIT",
   "private": true,
-  "packageManager": "pnpm@9.12.3",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit && eslint . --max-warnings=0",
-    "lint:eslint": "eslint . --max-warnings=0",
-    "lint:fix": "eslint . --max-warnings=0 --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "test": "vitest run",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "build": "node -e \"console.log('No build step defined yet')\"",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "pnpm exec eslint --max-warnings=0 --fix"
+    "*.{js,cjs,mjs,jsx}": [
+      "eslint --fix",
+      "prettier --write"
     ],
-    "*.{js,jsx,ts,tsx,md,css,json}": [
-      "pnpm exec prettier --write"
+    "*.{json,md}": [
+      "prettier --write"
     ]
   },
-  "dependencies": {
-    "@prisma/client": "^5.21.1",
-    "next": "16.0.0",
-    "react": "19.2.0",
-    "react-dom": "19.2.0"
-  },
   "devDependencies": {
-    "@commitlint/cli": "^19.3.0",
-    "@commitlint/config-conventional": "^19.2.2",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^15.2.10",
-    "postcss": "^8.4.49",
-    "prettier": "^3.6.2",
-    "prisma": "^5.21.1",
-    "tailwindcss": "^3.4.13",
-    "typescript": "^5",
-    "vitest": "^2.1.4"
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.5"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

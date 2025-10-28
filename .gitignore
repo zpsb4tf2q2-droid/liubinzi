@@ -1,31 +1,56 @@
-# Dependencies
-node_modules
-.pnp
-.pnp.*
-
-# Build output
-.next
-out
-build
-dist
-.turbo
-
-# Testing
-coverage
-
-# Environment files
-.env
-.env.*
-!.env.example
-
 # Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
-# Misc
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directories
+coverage
+*.lcov
+
+# Dependency directories
+node_modules/
+
+# Build outputs
+build/
+dist/
+out/
+tmp/
+temp/
+
+# Cache
+.npm
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 .DS_Store
-.vercel
-*.tsbuildinfo
-next-env.d.ts
+
+# dotenv environment variables
+.env
+.env.*
+!.env.example
+
+# Husky
+.husky/_
