@@ -1,0 +1,16 @@
+blank_issues_enabled: false
+issue_templates:
+  - name: Bug report
+    about: Report a reproducible problem.
+    title: "[Bug]: "
+    labels:
+      - bug
+    assignees: ""
+    filename: bug_report.md
+  - name: Feature request
+    about: Suggest a new idea or improvement.
+    title: "[Feature]: "
+    labels:
+      - enhancement
+    assignees: ""
+    filename: feature_request.md
