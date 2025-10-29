@@ -13,6 +13,13 @@ Thumbs.db
 node_modules/
 dist/
 build/
+.next/
+out/
+
+# Prisma
+dev.db
+*.db
+prisma/dev.db
 
 # Python
 __pycache__/
