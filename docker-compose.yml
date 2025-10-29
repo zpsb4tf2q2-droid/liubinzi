@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    command: pnpm dev
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_USER: app
+      DATABASE_PASSWORD: app
+      DATABASE_NAME: app
+      DATABASE_URL: postgres://app:app@db:5432/app
+      CHOKIDAR_USEPOLLING: '1'
+    volumes:
+      - ./:/app
+      - pnpm-store:/root/.local/share/pnpm
+      - app-node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U app -d app']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  postgres_data:
+  pnpm-store:
+  app-node_modules:
