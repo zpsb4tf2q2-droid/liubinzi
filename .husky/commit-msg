@@ -2,7 +2,7 @@
 set -e
 
 if command -v pnpm >/dev/null 2>&1; then
-  pnpm exec lint-staged
+  pnpm exec commitlint --edit "$1"
 else
-  npx lint-staged
+  npx commitlint --edit "$1"
 fi

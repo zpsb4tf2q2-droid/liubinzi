@@ -24,3 +24,6 @@ venv/
 # Coverage / Artifacts
 coverage/
 .coverage*
+
+# Tooling caches
+.cache/
