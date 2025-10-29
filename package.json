@@ -28,5 +28,10 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "@sentry/browser": "^10.22.0",
+    "@sentry/node": "^10.22.0",
+    "pino": "^10.1.0"
   }
 }

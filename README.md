@@ -53,11 +53,16 @@ A frontend package is not yet included. The plan is to introduce a Next.js 14+ a
 
 ### Backend
 
-The backend lives in [`src/index.ts`](./src/index.ts) and currently offers a single health-check endpoint on `/health`. It uses Node's built-in [`http`](https://nodejs.org/api/http.html) module to keep the footprint minimal while we bootstrap the rest of the stack. Expect this layer to evolve into a richer REST or RPC surface and eventually move under a dedicated directory (for example, `apps/api`) once routing, controllers, and domain modules are added.
+The backend lives in [`src/index.ts`](./src/index.ts) and currently exposes a minimal HTTP surface while we bootstrap the rest of the stack:
+
+- `GET /health` returns `{ "status": "ok" }` so uptime probes and local scripts can confirm the service is healthy.
+- `POST /auth/login` accepts `{ "email": string, "password": string }` and authenticates against a placeholder secret (`password123`). Successful responses include a deterministic, hashed `userId` and echo the request identifier so you can trace the call through the structured logs.
+
+It uses Node's built-in [`http`](https://nodejs.org/api/http.html) module to keep the footprint minimal while we iterate. Expect this layer to evolve into a richer REST or RPC surface and eventually move under a dedicated directory (for example, `apps/api`) once routing, controllers, and domain modules are added.
 
 ### Authentication
 
-Authentication and authorization are not yet implemented. The intended design is to centralize auth in the backend service with stateless JWT or session token support and to enforce route-level access controls. We will document token issuance, refresh strategies, and client integration once the auth layer lands.
+Authentication and authorization are not yet implemented. A mock `/auth/login` route exists purely to exercise the observability stack and validates credentials against a hard-coded secret. The intended design is to centralize auth in the backend service with stateless JWT or session token support and to enforce route-level access controls. We will document token issuance, refresh strategies, and client integration once the auth layer lands.
 
 ### Database
 
@@ -65,7 +70,60 @@ No database connection exists today. We plan to introduce PostgreSQL alongside P
 
 ### Observability
 
-At this stage the server logs to `stdout` using `console.log`. The observability roadmap includes structured logging (for example, with [pino](https://getpino.io/#/)), basic metrics, and distributed tracing once multiple services are involved. We will update this section as instrumentation gets added.
+The service now ships with opt-in telemetry to make debugging and monitoring predictable.
+
+#### Sentry instrumentation
+
+- Export `SENTRY_DSN` to enable server-side error forwarding. Without a DSN the SDK stays inert so local development behaves exactly as before.
+- Optionally set `SENTRY_ENV` and `SENTRY_TRACES_SAMPLE_RATE` (0–1) to control the environment tag and tracing sample rate.
+- Request handlers attach the `requestId`, route metadata, and sanitized user context to every captured exception.
+
+Browser clients can reuse the helper in [`src/observability/sentry.browser.ts`](./src/observability/sentry.browser.ts):
+
+```ts
+import { initBrowserSentry } from '../observability/sentry.browser';
+
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  initBrowserSentry({
+    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    environment: process.env.NEXT_PUBLIC_APP_ENV,
+  });
+}
+```
+
+The helper safely no-ops when executed in environments without a `window` global or when no DSN is provided.
+
+#### Structured logging
+
+Structured logging is powered by [pino](https://getpino.io/#/) and enriches every entry with the `requestId`, HTTP metadata, and (when available) sanitized user identifiers. Responses emit an `x-request-id` header so clients can correlate their calls with log entries and Sentry events.
+
+#### Configuration reference
+
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `SENTRY_DSN` | Enables Sentry instrumentation when present. | _unset_ |
+| `SENTRY_ENV` | Sentry environment tag. | `NODE_ENV` or `development` |
+| `SENTRY_TRACES_SAMPLE_RATE` | Fraction (0–1) of requests captured for tracing. | _unset_ |
+| `LOGGING_ENABLED` | Set to `false` to silence log output while keeping APIs functional. | `true` |
+| `LOG_LEVEL` | Pino log level. | `debug` (non-production) / `info` (production) |
+| `LOG_ENV` | Overrides the `environment` field in log output. | `NODE_ENV` |
+| `SERVICE_NAME` | Sets the `service` field on every log entry. | `liubinzi-service` |
+
+#### Consuming structured logs
+
+Because log lines are JSON you can pipe them directly into tooling such as `jq`, Logstash, or your log aggregation platform:
+
+```bash
+pnpm dev 2>&1 | jq '. | {level, event, requestId, msg}'
+```
+
+To debug a single request end to end, grab the `x-request-id` header from the response and filter:
+
+```bash
+cat server.log | jq 'select(.requestId == "req-123")'
+```
+
+This workflow lets you test observability locally before wiring the output into your preferred monitoring stack.
 
 ## Prerequisites
 
@@ -123,6 +181,13 @@ Before you start, install the following tools locally:
    curl http://localhost:3000/health
    ```
    You should receive `{"status":"ok"}`.
+4. Exercise the sample auth route to observe structured logs and Sentry context:
+   ```bash
+   curl -i -X POST http://localhost:3000/auth/login \
+     -H 'Content-Type: application/json' \
+     -d '{"email":"demo@example.com","password":"password123"}'
+   ```
+   The response echoes a hashed `userId` and the `x-request-id` header. Try an invalid password to watch the warning log emitted for failed authentication attempts.
 
 To run the production build locally:
 
