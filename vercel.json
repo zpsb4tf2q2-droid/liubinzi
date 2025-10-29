@@ -1,0 +1,29 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build && npm run migrate",
+  "devCommand": "npm run dev",
+  "functions": {
+    "api/index.ts": {
+      "runtime": "nodejs20.x",
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "NODE_ENV": "production",
+    "PORT": "3000",
+    "NEXTAUTH_SECRET": "@nextauth_secret",
+    "NEXTAUTH_URL": "@nextauth_url",
+    "GOOGLE_CLIENT_ID": "@google_client_id",
+    "GOOGLE_CLIENT_SECRET": "@google_client_secret",
+    "GITHUB_CLIENT_ID": "@github_client_id",
+    "GITHUB_CLIENT_SECRET": "@github_client_secret",
+    "DATABASE_URL": "@database_url",
+    "DATABASE_DIRECT_URL": "@database_direct_url",
+    "SENTRY_DSN": "@sentry_dsn",
+    "SENTRY_ENVIRONMENT": "@sentry_environment"
+  },
+  "regions": ["iad1"]
+}
