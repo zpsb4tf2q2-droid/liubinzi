@@ -1,4 +1,4 @@
-import http, { IncomingMessage, ServerResponse } from 'http';
+import http, { IncomingMessage, Server, ServerResponse } from 'http';
 
 const port = Number(process.env.PORT) || 3000;
 
@@ -18,7 +18,7 @@ const handleNotFound = (res: ServerResponse) => {
   res.end(JSON.stringify({ error: 'Not found' }));
 };
 
-const requestListener = (req: IncomingMessage, res: ServerResponse) => {
+export const requestListener = (req: IncomingMessage, res: ServerResponse) => {
   if (req.method === 'GET' && req.url === '/health') {
     handleHealthCheck(res);
     return;
@@ -27,8 +27,20 @@ const requestListener = (req: IncomingMessage, res: ServerResponse) => {
   handleNotFound(res);
 };
 
-const server = http.createServer(requestListener);
+export const createServer = (): Server => http.createServer(requestListener);
 
-server.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
-});
+export const startServer = (listenPort: number = port): Server => {
+  const server = createServer();
+
+  server.listen(listenPort, () => {
+    console.log(`Server is listening on port ${listenPort}`);
+  });
+
+  return server;
+};
+
+if (require.main === module) {
+  startServer();
+}
+
+export default requestListener;
