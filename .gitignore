@@ -13,6 +13,7 @@ Thumbs.db
 node_modules/
 dist/
 build/
+package-lock.json
 
 # Python
 __pycache__/

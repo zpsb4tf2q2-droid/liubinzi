@@ -9,10 +9,13 @@
     "start": "node dist/index.js",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
     "test": "jest --passWithNoTests=false",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.2",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.12",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
@@ -28,5 +31,6 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "packageManager": "pnpm@9.12.3"
 }
