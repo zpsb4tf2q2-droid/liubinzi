@@ -12,9 +12,13 @@
     "test": "jest --passWithNoTests=false",
     "test:watch": "jest --watch"
   },
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.12",
+    "@types/pg": "^8.15.6",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
     "eslint": "8.57.0",
@@ -28,5 +32,6 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "packageManager": "pnpm@10.20.0"
 }
