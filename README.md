@@ -1,25 +1,49 @@
 # liubinzi
 
-_A placeholder description for the liubinzi project._
+A Next.js application showcasing email/password and optional Google OAuth flows backed by NextAuth and Prisma.
 
 ## Getting Started
 
-1. Clone the repository.
-2. Install the core dependencies for your environment.
-3. Run the appropriate development or build commands for the stack.
+1. Install dependencies:
 
-## Project Structure
+   ```bash
+   npm install
+   ```
 
-Project structure details will be added here as the implementation evolves.
+2. Copy the example environment file and fill in the values you need:
 
-## Contributing
+   ```bash
+   cp .env.example .env
+   ```
 
-Contributions are welcome! Please:
+   The default configuration uses SQLite (`file:./dev.db`) for local development.
 
-- Open issues using the [bug report](.github/ISSUE_TEMPLATE/bug_report.md) or [feature request](.github/ISSUE_TEMPLATE/feature_request.md) templates.
-- Submit changes using the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
-- Follow the coding standards and guidelines established in this repository.
+3. Generate the Prisma client and apply the schema:
 
-## License
+   ```bash
+   npx prisma db push
+   ```
 
-This project is licensed under the [MIT License](LICENSE).
+4. Run the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) to access the app.
+
+## Authentication Flows
+
+- **Email & Password** – Users can sign up on `/register`. Passwords are hashed with bcrypt before being stored. Duplicate email registrations are rejected.
+- **Credentials Sign-in** – Users sign in at `/login`. Successful authentication redirects to the protected dashboard at `/dashboard`.
+- **Optional Google OAuth** – Provide `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and set `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true` to surface the Google button and enable the provider.
+
+Sessions are persisted using the Prisma adapter so you can view session records inside your database. The `/dashboard` route is protected both by middleware and server-side session checks.
+
+## Scripts
+
+- `npm run dev` – Start the Next.js development server.
+- `npm run build` – Create a production build.
+- `npm start` – Start the production server.
+- `npm run lint` – Run ESLint.
+- `npm test` – Execute Jest tests (placeholder configuration).
