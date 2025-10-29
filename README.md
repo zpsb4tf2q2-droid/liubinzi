@@ -1,25 +1,52 @@
 # liubinzi
 
-_A placeholder description for the liubinzi project._
+This repository contains the base scaffold for a Next.js 14 application using the App Router, TypeScript, ESLint, and Prettier. The project is configured to use pnpm for dependency management and includes a minimal homepage to help you get started quickly.
+
+## Prerequisites
+
+- Node.js v20.19.5 (see [`.nvmrc`](./.nvmrc))
+- [pnpm](https://pnpm.io/) (Corepack users can run `corepack enable pnpm`)
 
 ## Getting Started
 
-1. Clone the repository.
-2. Install the core dependencies for your environment.
-3. Run the appropriate development or build commands for the stack.
+Install dependencies:
+
+```bash
+pnpm install
+```
+
+Run the development server:
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser to view the app. Edit `app/page.tsx` to start building your UI; the page updates automatically as you save changes.
+
+## Scripts
+
+| Command          | Description                          |
+| ---------------- | ------------------------------------ |
+| `pnpm dev`       | Starts the Next.js development server |
+| `pnpm build`     | Creates an optimized production build |
+| `pnpm start`     | Runs the Next.js production server    |
+| `pnpm lint`      | Runs ESLint with the Next.js config   |
+| `pnpm typecheck` | Validates TypeScript types            |
 
 ## Project Structure
 
-Project structure details will be added here as the implementation evolves.
+```
+app/            # App Router routes and layout
+public/         # Static assets served at the root URL
+next.config.ts  # Next.js configuration
+pnpm-lock.yaml  # Dependency lockfile for reproducible installs
+```
 
-## Contributing
+## Linting & Formatting
 
-Contributions are welcome! Please:
+- ESLint is configured with the Next.js Core Web Vitals and TypeScript rules.
+- Prettier enforces consistent formatting across the codebase (see [`.prettierrc.json`](./.prettierrc.json)).
 
-- Open issues using the [bug report](.github/ISSUE_TEMPLATE/bug_report.md) or [feature request](.github/ISSUE_TEMPLATE/feature_request.md) templates.
-- Submit changes using the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
-- Follow the coding standards and guidelines established in this repository.
+## Deployment
 
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+Refer to the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for guidance on deploying to Vercel or your preferred platform.
