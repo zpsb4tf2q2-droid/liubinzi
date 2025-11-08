@@ -2,6 +2,7 @@
 
 import { signIn } from 'next-auth/react'
 import { FormEvent, useState } from 'react'
+import { PASSWORD_MIN_LENGTH, AUTH_PAGES } from '@/lib/constants'
 
 export default function RegisterForm() {
   const [loading, setLoading] = useState(false)
@@ -17,9 +18,9 @@ export default function RegisterForm() {
     const email = String(formData.get('email') || '')
     const password = String(formData.get('password') || '')
 
-    if (password.length < 6) {
+    if (password.length < PASSWORD_MIN_LENGTH) {
       setLoading(false)
-      setError('Password must be at least 6 characters')
+      setError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters`)
       return
     }
 
@@ -32,7 +33,13 @@ export default function RegisterForm() {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
       setLoading(false)
-      setError(data?.error || 'Failed to register')
+      
+      if (data?.details && Array.isArray(data.details)) {
+        const fieldErrors = data.details.map((err: any) => err.message).join(', ')
+        setError(fieldErrors)
+      } else {
+        setError(data?.error || 'Failed to register')
+      }
       return
     }
 
@@ -41,14 +48,14 @@ export default function RegisterForm() {
       email,
       password,
       redirect: false,
-      callbackUrl: '/dashboard'
+      callbackUrl: AUTH_PAGES.DASHBOARD
     })
     setLoading(false)
 
     if (signInRes?.ok) {
-      window.location.href = signInRes.url || '/dashboard'
+      window.location.href = signInRes.url || AUTH_PAGES.DASHBOARD
     } else {
-      window.location.href = '/login'
+      window.location.href = AUTH_PAGES.SIGN_IN
     }
   }
 

@@ -1,12 +1,13 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { AUTH_PAGES } from '@/lib/constants'
 import SignOutButton from '@/components/SignOutButton'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
   if (!session) {
-    redirect('/login')
+    redirect(AUTH_PAGES.SIGN_IN)
   }
 
   return (

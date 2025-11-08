@@ -3,6 +3,8 @@ import GitHubProvider from 'next-auth/providers/github'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from './prisma'
+import { logger } from './logger'
+import { AUTH_PAGES } from './constants'
 import bcrypt from 'bcrypt'
 
 export const authOptions: NextAuthOptions = {
@@ -11,7 +13,7 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt'
   },
   pages: {
-    signIn: '/login'
+    signIn: AUTH_PAGES.SIGN_IN
   },
   providers: [
     CredentialsProvider({
@@ -21,13 +23,26 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
+        if (!credentials?.email || !credentials?.password) {
+          logger.warn('Login attempt with missing credentials')
+          return null
+        }
+
+        logger.info('Login attempt', { email: credentials.email })
 
         const user = await prisma.user.findUnique({ where: { email: credentials.email } })
-        if (!user || !user.hashedPassword) return null
+        if (!user || !user.hashedPassword) {
+          logger.warn('Login failed: user not found or no password set', { email: credentials.email })
+          return null
+        }
 
         const isValid = await bcrypt.compare(credentials.password, user.hashedPassword)
-        if (!isValid) return null
+        if (!isValid) {
+          logger.warn('Login failed: invalid password', { email: credentials.email })
+          return null
+        }
+
+        logger.info('Login successful', { userId: user.id, email: credentials.email })
 
         return {
           id: user.id,

@@ -1,23 +1,29 @@
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
+import { registerSchema } from '@/lib/validations/auth'
+import { errorResponse, successResponse, validationErrorResponse } from '@/lib/api-response'
+import { AUTH_ERRORS, BCRYPT_SALT_ROUNDS } from '@/lib/constants'
 import bcrypt from 'bcrypt'
-import { NextResponse } from 'next/server'
+import { z } from 'zod'
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json()
+    const body = await req.json()
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
-    }
+    const validatedData = registerSchema.parse(body)
+    const { name, email, password } = validatedData
+
+    logger.info('User registration attempt', { email })
 
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing) {
-      return NextResponse.json({ error: 'Email already in use' }, { status: 400 })
+      logger.warn('Registration failed: email already in use', { email })
+      return errorResponse(AUTH_ERRORS.EMAIL_IN_USE, 400)
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS)
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name: name || null,
         email,
@@ -25,8 +31,17 @@ export async function POST(req: Request) {
       }
     })
 
-    return NextResponse.json({ ok: true })
+    logger.info('User registered successfully', { userId: user.id, email })
+
+    return successResponse({ ok: true })
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to register' }, { status: 500 })
+    if (err instanceof z.ZodError) {
+      const validationErrors = err.issues || []
+      logger.warn('Registration validation failed', { errors: validationErrors })
+      return validationErrorResponse(validationErrors)
+    }
+
+    logger.error('Registration failed', { error: err instanceof Error ? err.message : 'Unknown error' })
+    return errorResponse(AUTH_ERRORS.REGISTRATION_FAILED, 500)
   }
 }

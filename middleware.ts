@@ -3,10 +3,14 @@ import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
 export async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({ req })
   const { pathname } = req.nextUrl
 
-  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register')
+  const AUTH_ROUTES = ['/login', '/register']
+  const PROTECTED_ROUTES = ['/dashboard']
+
+  const isAuthPage = AUTH_ROUTES.some(route => pathname.startsWith(route))
+  const isProtectedPage = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
 
   if (isAuthPage && token) {
     const url = req.nextUrl.clone()
@@ -14,7 +18,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (!token && pathname.startsWith('/dashboard')) {
+  if (!token && isProtectedPage) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('callbackUrl', pathname)
