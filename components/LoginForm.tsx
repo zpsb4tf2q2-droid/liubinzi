@@ -3,12 +3,13 @@
 import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { FormEvent, useState } from 'react'
+import { AUTH_ERRORS, AUTH_PAGES } from '@/lib/constants'
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const params = useSearchParams()
-  const callbackUrl = params.get('callbackUrl') || '/dashboard'
+  const callbackUrl = params.get('callbackUrl') || AUTH_PAGES.DASHBOARD
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -28,7 +29,7 @@ export default function LoginForm() {
     setLoading(false)
 
     if (res?.error) {
-      setError('Invalid email or password')
+      setError(AUTH_ERRORS.INVALID_CREDENTIALS)
       return
     }
 
