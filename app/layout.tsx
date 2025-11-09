@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Providers from '@/components/Providers'
+import '@/lib/env'
 
 export const metadata: Metadata = {
   title: 'Auth.js + Prisma Demo',

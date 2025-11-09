@@ -4,6 +4,8 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from './prisma'
 import bcrypt from 'bcrypt'
+import { env } from './env'
+import { logInfo, logError } from './logger'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -21,19 +23,35 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
+        if (!credentials?.email || !credentials?.password) {
+          logError("Authorization failed: Missing credentials")
+          return null
+        }
 
-        const user = await prisma.user.findUnique({ where: { email: credentials.email } })
-        if (!user || !user.hashedPassword) return null
+        try {
+          const user = await prisma.user.findUnique({ where: { email: credentials.email } })
+          if (!user || !user.hashedPassword) {
+            logError("Authorization failed: User not found or no password", undefined, { email: credentials.email })
+            return null
+          }
 
-        const isValid = await bcrypt.compare(credentials.password, user.hashedPassword)
-        if (!isValid) return null
+          const isValid = await bcrypt.compare(credentials.password, user.hashedPassword)
+          if (!isValid) {
+            logError("Authorization failed: Invalid password", undefined, { email: credentials.email })
+            return null
+          }
 
-        return {
-          id: user.id,
-          name: user.name ?? undefined,
-          email: user.email ?? undefined,
-          image: user.image ?? undefined
+          logInfo("User authorized successfully", { userId: user.id, email: user.email })
+
+          return {
+            id: user.id,
+            name: user.name ?? undefined,
+            email: user.email ?? undefined,
+            image: user.image ?? undefined
+          }
+        } catch (error) {
+          logError("Authorization error", error)
+          return null
         }
       }
     })
@@ -54,11 +72,12 @@ export const authOptions: NextAuthOptions = {
   }
 }
 
-if (process.env.GITHUB_ID && process.env.GITHUB_SECRET) {
+if (env.GITHUB_ID && env.GITHUB_SECRET) {
+  logInfo("GitHub OAuth provider enabled")
   ;(authOptions.providers as any).push(
     GitHubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET
+      clientId: env.GITHUB_ID,
+      clientSecret: env.GITHUB_SECRET
     })
   )
 }
