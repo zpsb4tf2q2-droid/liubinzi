@@ -53,6 +53,12 @@ export default function RootLayout({
                         Dashboard
                       </Link>
                       <Link 
+                        href="/analytics" 
+                        className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-3 py-2"
+                      >
+                        Analytics
+                      </Link>
+                      <Link 
                         href="/login" 
                         className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-3 py-2"
                       >
