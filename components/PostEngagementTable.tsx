@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useTheme } from '@/components/ThemeProvider'
 
@@ -81,9 +82,10 @@ export default function PostEngagementTable({ posts }: PostEngagementTableProps)
 
       <div className="space-y-2">
         {posts.map((post, index) => (
-          <div 
+          <Link
             key={post.id}
-            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            href={`/posts/${post.id}`}
+            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400 flex-shrink-0">
@@ -111,7 +113,7 @@ export default function PostEngagementTable({ posts }: PostEngagementTableProps)
                 </span>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
