@@ -2,16 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg: 255 255 255;
-  --fg: 17 24 39;
+@layer base {
+  :root {
+    --bg: 255 255 255;
+    --fg: 17 24 39;
+  }
+
+  .dark {
+    --bg: 17 24 39;
+    --fg: 243 244 246;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    background-color: rgb(var(--bg));
+    color: rgb(var(--fg));
+  }
+
+  * {
+    @apply border-gray-200 dark:border-gray-700;
+  }
 }
 
-html, body, #__next {
-  height: 100%;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }
 
-body {
-  background-color: rgb(var(--bg));
-  color: rgb(var(--fg));
+@layer components {
+  .sr-only:not(:focus):not(:active) {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
 }

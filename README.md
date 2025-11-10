@@ -188,12 +188,96 @@ supabase link --project-ref your-project-id
 supabase gen types typescript --linked > lib/database.types.ts
 ```
 
+## UI Components
+
+The application includes a comprehensive set of reusable UI components in `/components/ui`:
+
+### Available Components
+
+- **Button** - Customizable button with variants (primary, secondary, danger, ghost) and sizes
+- **Input** - Form input with label, error states, and helper text
+- **Card** - Card container with header, body, and footer sections
+- **Modal** - Accessible modal dialog with keyboard support
+- **Toast** - Toast notification system with provider
+
+### Usage Example
+
+```typescript
+import { Button, Input, Card, CardBody } from '@/components/ui'
+
+export default function MyComponent() {
+  return (
+    <Card>
+      <CardBody>
+        <Input label="Email" type="email" required />
+        <Button variant="primary" fullWidth>
+          Submit
+        </Button>
+      </CardBody>
+    </Card>
+  )
+}
+```
+
+### Theme Support
+
+The application supports dark mode with automatic system preference detection:
+
+- **Light Mode** - Default theme
+- **Dark Mode** - Dark color scheme
+- **System** - Follows OS preference
+
+Theme can be toggled using the theme button in the navigation header. The preference is saved in localStorage.
+
 ## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
+
+## Deployment
+
+See [DEPLOY.md](./DEPLOY.md) for comprehensive deployment instructions including:
+
+- Environment variable configuration
+- Vercel deployment steps
+- Supabase setup and configuration
+- Post-deployment verification
+- Troubleshooting guide
+
+### Quick Deploy to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/yourrepo)
+
+After deploying, remember to:
+1. Add environment variables in Vercel project settings
+2. Configure Supabase redirect URLs
+3. Run smoke tests (see [SMOKE_TESTS.md](./SMOKE_TESTS.md))
+
+## Smoke Testing
+
+Before deploying to production, run through the smoke test checklist in [SMOKE_TESTS.md](./SMOKE_TESTS.md) to ensure:
+
+- ✅ All pages load correctly
+- ✅ Responsive design works across breakpoints
+- ✅ Dark mode functions properly
+- ✅ Accessibility requirements are met (Lighthouse score ≥ 90)
+- ✅ Forms and interactions work as expected
+
+## Accessibility
+
+This application is built with accessibility in mind:
+
+- Semantic HTML structure
+- ARIA labels and roles
+- Keyboard navigation support
+- Focus indicators on all interactive elements
+- Skip to main content link
+- Color contrast compliance (WCAG AA)
+- Screen reader friendly
+
+Target: **Lighthouse Accessibility Score ≥ 90**
 
 ## Next Steps
 
@@ -202,6 +286,8 @@ supabase gen types typescript --linked > lib/database.types.ts
 3. Add protected routes using the middleware
 4. Create your database tables and APIs
 5. Build out your application features
+6. Customize theme colors in `tailwind.config.ts`
+7. Update branding and metadata in `app/layout.tsx`
 
 ## Resources
 
