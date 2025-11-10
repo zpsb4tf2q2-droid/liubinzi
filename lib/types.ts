@@ -15,7 +15,81 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      // Your tables will be defined here
+      posts: {
+        Row: {
+          id: string
+          title: string
+          content: string
+          status: 'draft' | 'published'
+          author_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          content: string
+          status?: 'draft' | 'published'
+          author_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          content?: string
+          status?: 'draft' | 'published'
+          author_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      comments: {
+        Row: {
+          id: string
+          post_id: string
+          user_id: string
+          content: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          post_id: string
+          user_id: string
+          content: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          post_id?: string
+          user_id?: string
+          content?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      likes: {
+        Row: {
+          id: string
+          post_id: string
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          post_id: string
+          user_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          post_id?: string
+          user_id?: string
+          created_at?: string
+        }
+      }
     }
     Views: {
       // Your views will be defined here
@@ -28,3 +102,7 @@ export interface Database {
     }
   }
 }
+
+export type Post = Database['public']['Tables']['posts']['Row']
+export type Comment = Database['public']['Tables']['comments']['Row']
+export type Like = Database['public']['Tables']['likes']['Row']
