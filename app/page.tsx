@@ -12,18 +12,31 @@ export default function Home() {
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-          <h2 className="text-lg font-semibold mb-2">Authentication</h2>
+          <h2 className="text-lg font-semibold mb-2">媒体库</h2>
           <p className="text-gray-600 text-sm mb-4">
-            Secure user authentication powered by Supabase
+            上传和管理您的图片、视频和其他媒体文件
           </p>
           <Link 
-            href="/login" 
+            href="/media" 
             className="text-blue-600 hover:text-blue-700 text-sm font-medium"
           >
-            Learn more →
+            访问媒体库 →
           </Link>
         </div>
         
+        <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+          <h2 className="text-lg font-semibold mb-2">创建文章</h2>
+          <p className="text-gray-600 text-sm mb-4">
+            使用内置编辑器撰写和发布内容
+          </p>
+          <Link 
+            href="/articles" 
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+          >
+            开始创作 →
+          </Link>
+        </div>
+
         <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
           <h2 className="text-lg font-semibold mb-2">Dashboard</h2>
           <p className="text-gray-600 text-sm mb-4">
@@ -34,6 +47,19 @@ export default function Home() {
             className="text-blue-600 hover:text-blue-700 text-sm font-medium"
           >
             Go to Dashboard →
+          </Link>
+        </div>
+        
+        <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+          <h2 className="text-lg font-semibold mb-2">Authentication</h2>
+          <p className="text-gray-600 text-sm mb-4">
+            Secure user authentication powered by Supabase
+          </p>
+          <Link 
+            href="/login" 
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+          >
+            Learn more →
           </Link>
         </div>
         
