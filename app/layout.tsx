@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { ToastProvider } from '@/components/ui/Toast'
-import ThemeToggle from '@/components/ThemeToggle'
+import Navigation from '@/components/Navigation'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   title: 'Next.js + Supabase App',
@@ -19,11 +19,14 @@ export const viewport = {
   ],
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
@@ -38,35 +41,10 @@ export default function RootLayout({
             <div className="min-h-screen flex flex-col">
               <header className="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700 sticky top-0 z-40">
                 <div className="container mx-auto px-4 py-4">
-                  <nav className="flex items-center justify-between" role="navigation" aria-label="Main navigation">
-                    <Link 
-                      href="/" 
-                      className="text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
-                    >
-                      App Name
-                    </Link>
-                    <div className="flex items-center gap-2 sm:gap-4">
-                      <Link 
-                        href="/posts" 
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-3 py-2"
-                      >
-                        Posts
-                      </Link>
-                      <Link 
-                        href="/analytics" 
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-3 py-2"
-                      >
-                        Analytics
-                      </Link>
-                      <Link 
-                        href="/login" 
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-3 py-2"
-                      >
-                        Sign in
-                      </Link>
-                      <ThemeToggle />
-                    </div>
-                  </nav>
+                  <Navigation 
+                    isAuthenticated={!!user}
+                    userEmail={user?.email}
+                  />
                 </div>
               </header>
               <main id="main-content" className="flex-1">

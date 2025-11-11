@@ -1,5 +1,6 @@
 export { default as Button } from './Button'
 export { default as Input } from './Input'
+export { default as Textarea } from './Textarea'
 export { Card, CardHeader, CardBody, CardFooter } from './Card'
 export { default as Modal } from './Modal'
 export { ToastProvider, useToast } from './Toast'

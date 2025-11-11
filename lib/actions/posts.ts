@@ -144,3 +144,212 @@ export async function togglePostLike(postId: string): Promise<{ success: boolean
     return { success: false, liked: false, error: 'An unexpected error occurred' }
   }
 }
+
+export async function getMyPosts(): Promise<PostWithDetails[]> {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return []
+    }
+
+    const { data: posts, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('author_id', user.id)
+      .order('created_at', { ascending: false })
+
+    if (error || !posts) {
+      return []
+    }
+
+    const postsWithDetails = await Promise.all(
+      posts.map(async (post) => {
+        const [commentCountResult, likeCountResult] = await Promise.all([
+          supabase
+            .from('comments')
+            .select('*', { count: 'exact', head: true })
+            .eq('post_id', post.id),
+          supabase
+            .from('likes')
+            .select('*', { count: 'exact', head: true })
+            .eq('post_id', post.id)
+        ])
+
+        return {
+          ...post,
+          comment_count: commentCountResult.count || 0,
+          like_count: likeCountResult.count || 0
+        }
+      })
+    )
+
+    return postsWithDetails
+  } catch (error) {
+    console.error('Error fetching my posts:', error)
+    return []
+  }
+}
+
+export async function createPost(
+  title: string,
+  content: string,
+  status: 'draft' | 'published' = 'draft'
+): Promise<{ success: boolean; postId?: string; error?: string }> {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'You must be logged in to create posts' }
+    }
+
+    if (!title || title.trim().length === 0) {
+      return { success: false, error: 'Title is required' }
+    }
+
+    if (title.length > 200) {
+      return { success: false, error: 'Title must be 200 characters or less' }
+    }
+
+    if (!content || content.trim().length === 0) {
+      return { success: false, error: 'Content is required' }
+    }
+
+    if (content.length > 10000) {
+      return { success: false, error: 'Content must be 10,000 characters or less' }
+    }
+
+    const { data, error } = await supabase
+      .from('posts')
+      .insert({
+        title: title.trim(),
+        content: content.trim(),
+        status,
+        author_id: user.id
+      })
+      .select()
+      .single()
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/dashboard')
+    revalidatePath('/posts')
+    return { success: true, postId: data.id }
+  } catch (error) {
+    console.error('Error creating post:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+export async function updatePost(
+  postId: string,
+  title: string,
+  content: string,
+  status: 'draft' | 'published'
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'You must be logged in to update posts' }
+    }
+
+    if (!title || title.trim().length === 0) {
+      return { success: false, error: 'Title is required' }
+    }
+
+    if (title.length > 200) {
+      return { success: false, error: 'Title must be 200 characters or less' }
+    }
+
+    if (!content || content.trim().length === 0) {
+      return { success: false, error: 'Content is required' }
+    }
+
+    if (content.length > 10000) {
+      return { success: false, error: 'Content must be 10,000 characters or less' }
+    }
+
+    const { data: existingPost } = await supabase
+      .from('posts')
+      .select('author_id')
+      .eq('id', postId)
+      .single()
+
+    if (!existingPost) {
+      return { success: false, error: 'Post not found' }
+    }
+
+    if (existingPost.author_id !== user.id) {
+      return { success: false, error: 'You can only update your own posts' }
+    }
+
+    const { error } = await supabase
+      .from('posts')
+      .update({
+        title: title.trim(),
+        content: content.trim(),
+        status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', postId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/dashboard')
+    revalidatePath('/posts')
+    revalidatePath(`/posts/${postId}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating post:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+export async function deletePost(postId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'You must be logged in to delete posts' }
+    }
+
+    const { data: existingPost } = await supabase
+      .from('posts')
+      .select('author_id')
+      .eq('id', postId)
+      .single()
+
+    if (!existingPost) {
+      return { success: false, error: 'Post not found' }
+    }
+
+    if (existingPost.author_id !== user.id) {
+      return { success: false, error: 'You can only delete your own posts' }
+    }
+
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', postId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/dashboard')
+    revalidatePath('/posts')
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting post:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
