@@ -1,11 +1,15 @@
 "use client"
 
 import { FormEvent, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button, Input } from '@/components/ui'
+import { signIn } from '@/lib/actions/auth'
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl')
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -13,23 +17,31 @@ export default function LoginForm() {
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
-    const email = String(formData.get('email') || '')
+    const email = String(formData.get('email') || '').trim()
     const password = String(formData.get('password') || '')
 
-    setTimeout(() => {
+    if (!email || !password) {
+      setError('Please provide both email and password')
       setLoading(false)
-      setError('Authentication not yet implemented. Please configure Supabase.')
-    }, 500)
+      return
+    }
+
+    try {
+      const result = await signIn(email, password, callbackUrl || undefined)
+      if (!result.success) {
+        setError(result.error || 'Failed to sign in')
+        setLoading(false)
+      }
+    } catch (error) {
+      if (error instanceof Error && !error.message.includes('NEXT_REDIRECT')) {
+        setError('An unexpected error occurred')
+        setLoading(false)
+      }
+    }
   }
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 p-4 text-sm text-blue-700 dark:text-blue-300 flex items-start gap-3">
-        <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-        </svg>
-        <p>This form is a placeholder. Implement Supabase authentication to enable login functionality.</p>
-      </div>
       <form onSubmit={onSubmit} className="space-y-4">
         {error && (
           <div role="alert" className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 p-4 text-sm text-red-700 dark:text-red-300 flex items-start gap-3">

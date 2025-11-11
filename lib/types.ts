@@ -93,6 +93,29 @@ export interface Database {
           created_at?: string
         }
       }
+      profiles: {
+        Row: {
+          id: string
+          email: string
+          name: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          email: string
+          name?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          name?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       // Your views will be defined here
@@ -109,6 +132,7 @@ export interface Database {
 export type Post = Database['public']['Tables']['posts']['Row']
 export type Comment = Database['public']['Tables']['comments']['Row']
 export type Like = Database['public']['Tables']['likes']['Row']
+export type Profile = Database['public']['Tables']['profiles']['Row']
 
 export interface CommentWithUser extends Comment {
   user?: {

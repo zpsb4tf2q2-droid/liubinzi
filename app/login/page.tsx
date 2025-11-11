@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import LoginForm from '@/components/LoginForm'
 import { Card, CardBody } from '@/components/ui'
 
@@ -13,7 +14,9 @@ export default function LoginPage() {
       </div>
       <Card>
         <CardBody>
-          <LoginForm />
+          <Suspense fallback={<div className="text-center py-4">Loading...</div>}>
+            <LoginForm />
+          </Suspense>
         </CardBody>
       </Card>
       <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
