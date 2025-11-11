@@ -58,10 +58,10 @@ export default function PostForm({ mode, initialData, onSubmit, onDelete }: Post
       if (result.success) {
         setLastSaved(new Date())
         showToast(
+          'success',
           mode === 'create' 
             ? `Post ${status === 'published' ? 'published' : 'saved as draft'} successfully!`
-            : `Post updated successfully!`,
-          'success'
+            : `Post updated successfully!`
         )
         
         if (mode === 'create' && result.postId) {
@@ -70,7 +70,7 @@ export default function PostForm({ mode, initialData, onSubmit, onDelete }: Post
           router.refresh()
         }
       } else {
-        showToast(result.error || 'An error occurred', 'error')
+        showToast('error', result.error || 'An error occurred')
       }
     })
   }
@@ -86,10 +86,10 @@ export default function PostForm({ mode, initialData, onSubmit, onDelete }: Post
     const result = await onDelete()
     
     if (result.success) {
-      showToast('Post deleted successfully!', 'success')
+      showToast('success', 'Post deleted successfully!')
       router.push('/dashboard')
     } else {
-      showToast(result.error || 'Failed to delete post', 'error')
+      showToast('error', result.error || 'Failed to delete post')
       setIsDeleting(false)
     }
   }
