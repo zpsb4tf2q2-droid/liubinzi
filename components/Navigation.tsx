@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import ThemeToggle from '@/components/ThemeToggle'
+import { signOut } from '@/lib/actions/auth'
 
 interface NavigationProps {
   isAuthenticated: boolean
@@ -14,6 +15,14 @@ export default function Navigation({ isAuthenticated, userEmail }: NavigationPro
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(`${path}/`)
+  }
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+    } catch (error) {
+      console.error('Sign out error:', error)
+    }
   }
 
   return (
@@ -62,14 +71,13 @@ export default function Navigation({ isAuthenticated, userEmail }: NavigationPro
               <span className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-[150px]" title={userEmail}>
                 {userEmail}
               </span>
-              <form action="/api/auth/signout" method="post">
-                <button
-                  type="submit"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-3 py-2"
-                >
-                  Sign out
-                </button>
-              </form>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-3 py-2"
+              >
+                Sign out
+              </button>
             </div>
           </>
         ) : (

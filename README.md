@@ -136,39 +136,53 @@ export default async function MyServerComponent() {
 
 The middleware automatically handles session refresh. It's configured in `middleware.ts`.
 
-## Setting Up Authentication
+## Authentication Setup
 
-The authentication forms are currently placeholders. To implement full authentication:
+The application includes a fully implemented authentication system using Supabase Auth.
 
-1. **Enable Email/Password Auth in Supabase**:
+### Database Setup
+
+1. **Run the profiles schema migration**:
+   - Open your Supabase project dashboard
+   - Go to SQL Editor
+   - Copy and run the SQL from `supabase_profiles_schema.sql`
+   - This creates the profiles table and triggers for auto-profile creation
+
+2. **Enable Email/Password Auth in Supabase**:
    - Go to Authentication → Providers in your Supabase dashboard
    - Enable "Email" provider
+   - Configure email templates (optional)
 
-2. **Implement Sign Up**:
-   ```typescript
-   const { data, error } = await supabase.auth.signUp({
-     email: 'user@example.com',
-     password: 'password123',
-   })
-   ```
+### Features
 
-3. **Implement Sign In**:
-   ```typescript
-   const { data, error } = await supabase.auth.signInWithPassword({
-     email: 'user@example.com',
-     password: 'password123',
-   })
-   ```
+- ✅ User registration with automatic profile creation
+- ✅ Email/password login with validation
+- ✅ Secure sign-out functionality
+- ✅ Protected routes (dashboard, analytics)
+- ✅ Automatic redirects for authenticated/unauthenticated users
+- ✅ Callback URL support for login redirects
+- ✅ Session management via middleware
 
-4. **Implement Sign Out**:
-   ```typescript
-   const { error } = await supabase.auth.signOut()
-   ```
+### Auth Actions
 
-5. **Get Current User**:
-   ```typescript
-   const { data: { user } } = await supabase.auth.getUser()
-   ```
+The application uses server actions for authentication:
+
+```typescript
+import { signIn, signUp, signOut } from '@/lib/actions/auth'
+
+// Sign in
+await signIn('user@example.com', 'password123', '/callback-url')
+
+// Sign up with name
+await signUp('user@example.com', 'password123', 'John Doe')
+
+// Sign out
+await signOut()
+```
+
+### Protected Routes
+
+Routes starting with `/dashboard` or `/analytics` are automatically protected by middleware and redirect unauthenticated users to `/login` with a callback URL.
 
 ## Using Supabase CLI (Optional)
 
@@ -281,13 +295,13 @@ Target: **Lighthouse Accessibility Score ≥ 90**
 
 ## Next Steps
 
-1. Set up your Supabase database schema
-2. Implement authentication logic in the login/register forms
-3. Add protected routes using the middleware
-4. Create your database tables and APIs
-5. Build out your application features
-6. Customize theme colors in `tailwind.config.ts`
-7. Update branding and metadata in `app/layout.tsx`
+1. ✅ ~~Set up your Supabase database schema~~ - Run `supabase_profiles_schema.sql` and `supabase_analytics_schema.sql`
+2. ✅ ~~Implement authentication logic in the login/register forms~~ - Fully implemented with server actions
+3. ✅ ~~Add protected routes using the middleware~~ - Dashboard and Analytics routes protected
+4. Build out additional application features
+5. Customize theme colors in `tailwind.config.ts`
+6. Update branding and metadata in `app/layout.tsx`
+7. Configure email templates in Supabase (optional)
 
 ## Resources
 
