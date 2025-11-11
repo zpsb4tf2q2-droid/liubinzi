@@ -49,6 +49,7 @@ export interface Database {
           id: string
           post_id: string
           user_id: string
+          parent_id: string | null
           content: string
           created_at: string
           updated_at: string
@@ -57,6 +58,7 @@ export interface Database {
           id?: string
           post_id: string
           user_id: string
+          parent_id?: string | null
           content: string
           created_at?: string
           updated_at?: string
@@ -65,6 +67,7 @@ export interface Database {
           id?: string
           post_id?: string
           user_id?: string
+          parent_id?: string | null
           content?: string
           created_at?: string
           updated_at?: string
@@ -106,3 +109,21 @@ export interface Database {
 export type Post = Database['public']['Tables']['posts']['Row']
 export type Comment = Database['public']['Tables']['comments']['Row']
 export type Like = Database['public']['Tables']['likes']['Row']
+
+export interface CommentWithUser extends Comment {
+  user?: {
+    id: string
+    email?: string
+  }
+  replies?: CommentWithUser[]
+}
+
+export interface PostWithDetails extends Post {
+  author?: {
+    id: string
+    email?: string
+  }
+  comment_count?: number
+  like_count?: number
+  user_has_liked?: boolean
+}
