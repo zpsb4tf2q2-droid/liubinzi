@@ -109,6 +109,7 @@ export interface Database {
 export type Post = Database['public']['Tables']['posts']['Row']
 export type Comment = Database['public']['Tables']['comments']['Row']
 export type Like = Database['public']['Tables']['likes']['Row']
+export type Reaction = Like // Alias for likes table (reactions)
 
 export interface CommentWithUser extends Comment {
   user?: {
@@ -126,4 +127,22 @@ export interface PostWithDetails extends Post {
   comment_count?: number
   like_count?: number
   user_has_liked?: boolean
+}
+
+export interface PostWithCounts {
+  post_id: string
+  comment_count: number
+  like_count: number
+}
+
+export interface CommentCreate {
+  post_id: string
+  user_id: string
+  content: string
+  parent_id?: string | null
+}
+
+export interface ReactionCreate {
+  post_id: string
+  user_id: string
 }
